@@ -501,11 +501,6 @@ app.post(
 
     }
 
-    /*
-      Browser input is NEVER trusted.
-      Reward is capped on server.
-    */
-
     const score =
       Math.min(
         Math.floor(rawScore),
@@ -553,8 +548,6 @@ app.post(
         );
 
     }
-
-    /* Mark session used */
 
     db.prepare(`
       UPDATE game_sessions
@@ -649,17 +642,21 @@ app.get(
 );
 
 /* =========================
-   STATIC WEBSITE
+   STATIC WEBSITE & ROUTES
 ========================= */
 
-app.use(
-  express.static(
-    path.join(
-      __dirname,
-      "public"
-    )
-  )
-);
+// Direct static file serving (Root folder + Public folder dono support karega)
+app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, "public")));
+
+// Direct index.html handler
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"), (err) => {
+    if (err) {
+      res.sendFile(path.join(__dirname, "public", "index.html"));
+    }
+  });
+});
 
 /* =========================
    START SERVER
