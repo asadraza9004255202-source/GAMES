@@ -1,63 +1,32 @@
 const state = {
-
-  customer:
-    JSON.parse(
-      localStorage.getItem(
-        "asadCustomer"
-      ) || "null"
-    ),
-
+  customer: JSON.parse(localStorage.getItem("asadCustomer") || "null"),
   session: null,
-
   currentGame: null
-
 };
 
-
-const $ = id =>
-  document.getElementById(id);
+const $ = id => document.getElementById(id);
 
 
 /* =========================
    API HELPER
 ========================= */
 
-async function api(
-  url,
-  options = {}
-) {
+async function api(url, options = {}) {
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    },
+    ...options
+  });
 
-  const response =
-    await fetch(
-      url,
-      {
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          ...(options.headers || {})
-        },
-
-        ...options
-      }
-    );
-
-  const data =
-    await response
-      .json()
-      .catch(() => ({}));
+  const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-
-    throw new Error(
-      data.error ||
-      "Request failed"
-    );
-
+    throw new Error(data.error || "Request failed");
   }
 
   return data;
-
 }
 
 
@@ -66,16 +35,9 @@ async function api(
 ========================= */
 
 function saveCustomer(customer) {
-
   state.customer = customer;
-
-  localStorage.setItem(
-    "asadCustomer",
-    JSON.stringify(customer)
-  );
-
+  localStorage.setItem("asadCustomer", JSON.stringify(customer));
   updateUI();
-
 }
 
 
@@ -84,45 +46,20 @@ function saveCustomer(customer) {
 ========================= */
 
 function updateUI() {
+  const c = state.customer;
+  const points = c?.points || 0;
 
-  const c =
-    state.customer;
-
-  const points =
-    c?.points || 0;
-
-  $("points")
-    .textContent = points;
-
-  $("navPoints")
-    .textContent = points;
-
-  $("gamesPlayed")
-    .textContent =
-      c?.gamesPlayed || 0;
-
-  $("bestScore")
-    .textContent =
-      c?.bestScore || 0;
-
-  $("discount")
-    .textContent =
-      `${c?.discount || 0}%`;
-
-  $("heroDiscount")
-    .textContent =
-      `${c?.discount || 0}%`;
+  $("points").textContent = points;
+  $("navPoints").textContent = points;
+  $("gamesPlayed").textContent = c?.gamesPlayed || 0;
+  $("bestScore").textContent = c?.bestScore || 0;
+  $("discount").textContent = `${c?.discount || 0}%`;
+  $("heroDiscount").textContent = `${c?.discount || 0}%`;
 
   if (c) {
-
-    $("name").value =
-      c.name || "";
-
-    $("phone").value =
-      c.phone || "";
-
+    $("name").value = c.name || "";
+    $("phone").value = c.phone || "";
   }
-
 }
 
 
@@ -131,32 +68,15 @@ function updateUI() {
 ========================= */
 
 async function refreshCustomer() {
-
-  if (!state.customer?.id) {
-    return;
-  }
+  if (!state.customer?.id) return;
 
   try {
-
-    const data =
-      await api(
-        `/api/customers/${state.customer.id}`
-      );
-
-    saveCustomer(
-      data.customer
-    );
-
+    const data = await api(`/api/customers/${state.customer.id}`);
+    saveCustomer(data.customer);
   } catch {
-
-    localStorage.removeItem(
-      "asadCustomer"
-    );
-
+    localStorage.removeItem("asadCustomer");
     state.customer = null;
-
   }
-
 }
 
 
@@ -164,326 +84,145 @@ async function refreshCustomer() {
    CUSTOMER FORM
 ========================= */
 
-$("profileForm")
-  .addEventListener(
-    "submit",
-    async event => {
+$("profileForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const msg = $("profileMsg");
+  msg.textContent = "Saving...";
 
-      event.preventDefault();
+  try {
+    const data = await api("/api/customers", {
+      method: "POST",
+      body: JSON.stringify({
+        name: $("name").value,
+        phone: $("phone").value
+      })
+    });
 
-      const msg =
-        $("profileMsg");
-
-      msg.textContent =
-        "Saving...";
-
-      try {
-
-        const data =
-          await api(
-            "/api/customers",
-            {
-              method: "POST",
-
-              body:
-                JSON.stringify({
-
-                  name:
-                    $("name").value,
-
-                  phone:
-                    $("phone").value
-
-                })
-
-            }
-          );
-
-        saveCustomer(
-          data.customer
-        );
-
-        msg.textContent =
-          "✓ Profile saved successfully.";
-
-      } catch (error) {
-
-        msg.textContent =
-          error.message;
-
-      }
-
-    }
-  );
+    saveCustomer(data.customer);
+    msg.textContent = "✓ Profile saved successfully.";
+  } catch (error) {
+    msg.textContent = error.message;
+  }
+});
 
 
 /* =========================
-   GAMES
+   GAMES MAPPING
 ========================= */
 
 const games = {
-
   "coin-rush": {
-
     title: "Coin Rush",
-
-    build:
-      buildCoinRush
-
+    build: buildCoinRush
   },
-
   "memory-master": {
-
     title: "Memory Master",
-
-    build:
-      buildMemory
-
+    build: buildMemory
   },
-
   reaction: {
-
-    title:
-      "Reaction Challenge",
-
-    build:
-      buildReaction
-
+    title: "Reaction Challenge",
+    build: buildReaction
   },
-
   "target-hunter": {
-
-    title:
-      "Target Hunter",
-
-    build:
-      buildTarget
-
+    title: "Target Hunter",
+    build: buildTarget
   },
-
   "number-guess": {
-
-    title:
-      "Number Guess",
-
-    build:
-      buildGuess
-
+    title: "Number Guess",
+    build: buildGuess
+  },
+  "survival-shooter": {
+    title: "Free Fire 2D",
+    build: buildSurvivalShooter
   }
-
 };
 
 
 /* =========================
-   GAME CLICK
+   GAME CLICK & MODAL
 ========================= */
 
-document
-  .querySelectorAll(
-    ".game-tile"
-  )
-  .forEach(tile => {
-
-    tile.addEventListener(
-      "click",
-      () => {
-
-        openGame(
-          tile.dataset.game
-        );
-
-      }
-    );
-
+document.querySelectorAll(".game-tile").forEach(tile => {
+  tile.addEventListener("click", () => {
+    openGame(tile.dataset.game);
   });
-
-
-/* =========================
-   OPEN GAME
-========================= */
+});
 
 async function openGame(game) {
-
   if (!state.customer) {
-
-    $("profileMsg")
-      .textContent =
-      "Please save your customer profile first.";
-
-    location.hash =
-      "rewards";
-
+    $("profileMsg").textContent = "Please save your customer profile first.";
+    location.hash = "rewards";
     return;
-
   }
 
   try {
+    const data = await api(`/api/games/${game}/start`, {
+      method: "POST",
+      body: JSON.stringify({
+        customerId: state.customer.id
+      })
+    });
 
-    const data =
-      await api(
-        `/api/games/${game}/start`,
-        {
-          method: "POST",
+    state.session = data;
+    state.currentGame = game;
 
-          body:
-            JSON.stringify({
-              customerId:
-                state.customer.id
-            })
-        }
-      );
+    $("modalTitle").textContent = games[game].title;
+    $("liveScore").textContent = "0";
+    $("gameMessage").textContent = "";
+    $("gameStage").innerHTML = "";
+    $("gameModal").classList.add("open");
+    $("gameModal").setAttribute("aria-hidden", "false");
 
-    state.session =
-      data;
-
-    state.currentGame =
-      game;
-
-    $("modalTitle")
-      .textContent =
-      games[game].title;
-
-    $("liveScore")
-      .textContent = "0";
-
-    $("gameMessage")
-      .textContent = "";
-
-    $("gameStage")
-      .innerHTML = "";
-
-    $("gameModal")
-      .classList.add("open");
-
-    $("gameModal")
-      .setAttribute(
-        "aria-hidden",
-        "false"
-      );
-
-    games[game]
-      .build();
-
+    games[game].build();
   } catch (error) {
-
-    alert(
-      error.message
-    );
-
+    alert(error.message);
   }
-
 }
 
+$("closeGame").addEventListener("click", closeGame);
 
-/* =========================
-   CLOSE GAME
-========================= */
-
-$("closeGame")
-  .addEventListener(
-    "click",
-    closeGame
-  );
-
-
-$("gameModal")
-  .addEventListener(
-    "click",
-    event => {
-
-      if (
-        event.target ===
-        $("gameModal")
-      ) {
-
-        closeGame();
-
-      }
-
-    }
-  );
-
+$("gameModal").addEventListener("click", event => {
+  if (event.target === $("gameModal")) {
+    closeGame();
+  }
+});
 
 function closeGame() {
-
-  $("gameModal")
-    .classList
-    .remove("open");
-
-  $("gameModal")
-    .setAttribute(
-      "aria-hidden",
-      "true"
-    );
-
-  $("gameStage")
-    .innerHTML = "";
-
+  $("gameModal").classList.remove("open");
+  $("gameModal").setAttribute("aria-hidden", "true");
+  $("gameStage").innerHTML = "";
   state.session = null;
-
   state.currentGame = null;
-
 }
 
 
 /* =========================
-   FINISH GAME
+   FINISH GAME API
 ========================= */
 
 async function finishGame(score) {
-
-  if (!state.session) {
-    return;
-  }
+  if (!state.session) return;
 
   try {
+    const data = await api(`/api/games/${state.currentGame}/finish`, {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: state.session.sessionId,
+        score: score
+      })
+    });
 
-    const data =
-      await api(
-        `/api/games/${state.currentGame}/finish`,
-        {
-          method: "POST",
+    saveCustomer(data.customer);
 
-          body:
-            JSON.stringify({
+    $("gameMessage").textContent = `🎉 +${data.earned} points added!`;
+    $("liveScore").textContent = score;
 
-              sessionId:
-                state.session
-                  .sessionId,
-
-              score:
-                score
-
-            })
-
-        }
-      );
-
-    saveCustomer(
-      data.customer
-    );
-
-    $("gameMessage")
-      .textContent =
-      `🎉 +${data.earned} points added!`;
-
-    $("liveScore")
-      .textContent =
-      score;
-
-    state.session =
-      null;
+    state.session = null;
 
     loadLeaderboard();
-
   } catch (error) {
-
-    $("gameMessage")
-      .textContent =
-      error.message;
-
+    $("gameMessage").textContent = error.message;
   }
-
 }
 
 
@@ -492,483 +231,178 @@ async function finishGame(score) {
 ===================================================== */
 
 function buildCoinRush() {
-
-  const stage =
-    document.createElement(
-      "div"
-    );
-
-  stage.className =
-    "stage";
-
+  const stage = document.createElement("div");
+  stage.className = "stage";
   stage.innerHTML = `
-
     <div class="stage-info">
-
-      <span>
-        Time:
-        <b id="gTime">
-          15
-        </b>s
-      </span>
-
-      <span>
-        Coins:
-        <b id="gScore">
-          0
-        </b>
-      </span>
-
+      <span>Time: <b id="gTime">15</b>s</span>
+      <span>Coins: <b id="gScore">0</b></span>
     </div>
-
   `;
 
-  const coin =
-    document.createElement(
-      "button"
-    );
+  const coin = document.createElement("button");
+  coin.className = "coin";
+  coin.textContent = "🪙";
 
-  coin.className =
-    "coin";
-
-  coin.textContent =
-    "🪙";
-
-  stage.appendChild(
-    coin
-  );
-
-  $("gameStage")
-    .appendChild(stage);
-
+  stage.appendChild(coin);
+  $("gameStage").appendChild(stage);
 
   let time = 15;
-
   let score = 0;
-
   let running = true;
 
-
   function moveCoin() {
-
-    coin.style.left =
-      `${
-        Math.random() *
-        Math.max(
-          5,
-          stage.clientWidth - 60
-        )
-      }px`;
-
-    coin.style.top =
-      `${
-        50 +
-        Math.random() *
-        Math.max(
-          5,
-          stage.clientHeight - 105
-        )
-      }px`;
-
+    coin.style.left = `${Math.random() * Math.max(5, stage.clientWidth - 60)}px`;
+    coin.style.top = `${50 + Math.random() * Math.max(5, stage.clientHeight - 105)}px`;
   }
 
-
   coin.onclick = () => {
-
-    if (!running) {
-      return;
-    }
-
+    if (!running) return;
     score++;
-
-    $("gScore")
-      .textContent =
-      score;
-
-    $("liveScore")
-      .textContent =
-      score;
-
+    $("gScore").textContent = score;
+    $("liveScore").textContent = score;
     moveCoin();
-
   };
-
 
   moveCoin();
 
+  const timer = setInterval(() => {
+    time--;
+    $("gTime").textContent = time;
 
-  const timer =
-    setInterval(
-      () => {
-
-        time--;
-
-        $("gTime")
-          .textContent =
-          time;
-
-        if (time <= 0) {
-
-          clearInterval(
-            timer
-          );
-
-          running = false;
-
-          coin.remove();
-
-          finishGame(
-            score
-          );
-
-        }
-
-      },
-      1000
-    );
-
+    if (time <= 0) {
+      clearInterval(timer);
+      running = false;
+      coin.remove();
+      finishGame(score);
+    }
+  }, 1000);
 }
 
 
 /* =====================================================
-   GAME 2 — MEMORY
+   GAME 2 — MEMORY MASTER
 ===================================================== */
 
 function buildMemory() {
+  const stage = document.createElement("div");
+  stage.className = "stage";
 
-  const stage =
-    document.createElement(
-      "div"
-    );
+  const grid = document.createElement("div");
+  grid.className = "memory-grid";
+  stage.appendChild(grid);
+  $("gameStage").appendChild(stage);
 
-  stage.className =
-    "stage";
-
-  const grid =
-    document.createElement(
-      "div"
-    );
-
-  grid.className =
-    "memory-grid";
-
-  stage.appendChild(
-    grid
+  const symbols = ["🍎", "🍎", "🚀", "🚀", "⭐", "⭐", "🍕", "🍕"].sort(
+    () => Math.random() - 0.5
   );
-
-  $("gameStage")
-    .appendChild(stage);
-
-
-  const symbols = [
-
-    "🍎",
-    "🍎",
-
-    "🚀",
-    "🚀",
-
-    "⭐",
-    "⭐",
-
-    "🍕",
-    "🍕"
-
-  ].sort(
-    () =>
-      Math.random() -
-      .5
-  );
-
 
   let first = null;
-
   let second = null;
-
   let lock = false;
-
   let matches = 0;
 
+  symbols.forEach(symbol => {
+    const card = document.createElement("button");
+    card.className = "memory-card";
+    card.textContent = "❓";
+    card.dataset.symbol = symbol;
 
-  symbols.forEach(
-    symbol => {
+    card.onclick = () => {
+      if (lock || card === first || card.classList.contains("matched")) return;
 
-      const card =
-        document.createElement(
-          "button"
-        );
+      card.textContent = symbol;
+      card.classList.add("open");
 
-      card.className =
-        "memory-card";
+      if (!first) {
+        first = card;
+        return;
+      }
 
-      card.textContent =
-        "❓";
+      second = card;
+      lock = true;
 
-      card.dataset.symbol =
-        symbol;
+      if (first.dataset.symbol === second.dataset.symbol) {
+        first.classList.add("matched");
+        second.classList.add("matched");
+        matches++;
+        first = null;
+        second = null;
+        lock = false;
 
-
-      card.onclick = () => {
-
-        if (
-          lock ||
-          card === first ||
-          card.classList.contains(
-            "matched"
-          )
-        ) {
-
-          return;
-
+        if (matches === 4) {
+          finishGame(40);
         }
-
-
-        card.textContent =
-          symbol;
-
-        card.classList.add(
-          "open"
-        );
-
-
-        if (!first) {
-
-          first =
-            card;
-
-          return;
-
-        }
-
-
-        second =
-          card;
-
-        lock = true;
-
-
-        if (
-          first.dataset.symbol ===
-          second.dataset.symbol
-        ) {
-
-          first.classList.add(
-            "matched"
-          );
-
-          second.classList.add(
-            "matched"
-          );
-
-          matches++;
-
+      } else {
+        setTimeout(() => {
+          first.textContent = "❓";
+          second.textContent = "❓";
+          first.classList.remove("open");
+          second.classList.remove("open");
           first = null;
-
           second = null;
-
           lock = false;
+        }, 650);
+      }
+    };
 
-
-          if (
-            matches === 4
-          ) {
-
-            finishGame(
-              40
-            );
-
-          }
-
-        } else {
-
-          setTimeout(
-            () => {
-
-              first.textContent =
-                "❓";
-
-              second.textContent =
-                "❓";
-
-              first.classList
-                .remove("open");
-
-              second.classList
-                .remove("open");
-
-              first = null;
-
-              second = null;
-
-              lock = false;
-
-            },
-            650
-          );
-
-        }
-
-      };
-
-
-      grid.appendChild(
-        card
-      );
-
-    }
-  );
-
+    grid.appendChild(card);
+  });
 }
 
 
 /* =====================================================
-   GAME 3 — REACTION
+   GAME 3 — REACTION CHALLENGE
 ===================================================== */
 
 function buildReaction() {
+  const stage = document.createElement("div");
+  stage.className = "stage";
 
-  const stage =
-    document.createElement(
-      "div"
-    );
+  const pad = document.createElement("div");
+  pad.className = "reaction-pad";
+  pad.textContent = "WAIT...";
 
-  stage.className =
-    "stage";
-
-
-  const pad =
-    document.createElement(
-      "div"
-    );
-
-  pad.className =
-    "reaction-pad";
-
-  pad.textContent =
-    "WAIT...";
-
-
-  stage.appendChild(
-    pad
-  );
-
-  $("gameStage")
-    .appendChild(stage);
-
+  stage.appendChild(pad);
+  $("gameStage").appendChild(stage);
 
   let started = false;
-
   let finished = false;
-
   let startAt = 0;
 
+  const delay = 1800 + Math.random() * 3000;
 
-  const delay =
-    1800 +
-    Math.random() *
-    3000;
-
-
-  const timeout =
-    setTimeout(
-      () => {
-
-        started = true;
-
-        startAt =
-          performance.now();
-
-        pad.classList.add(
-          "go"
-        );
-
-        pad.textContent =
-          "CLICK!";
-
-      },
-      delay
-    );
-
+  const timeout = setTimeout(() => {
+    started = true;
+    startAt = performance.now();
+    pad.classList.add("go");
+    pad.textContent = "CLICK!";
+  }, delay);
 
   pad.onclick = () => {
-
-    if (finished) {
-      return;
-    }
-
+    if (finished) return;
 
     if (!started) {
-
-      clearTimeout(
-        timeout
-      );
-
-      pad.textContent =
-        "Too early!";
-
+      clearTimeout(timeout);
+      pad.textContent = "Too early!";
       finished = true;
-
-      setTimeout(
-        () => {
-
-          finishGame(
-            0
-          );
-
-        },
-        800
-      );
-
+      setTimeout(() => {
+        finishGame(0);
+      }, 800);
       return;
-
     }
 
-
-    const ms =
-      Math.round(
-        performance.now() -
-        startAt
-      );
-
-
-    const score =
-      Math.max(
-        1,
-        Math.min(
-          40,
-          Math.round(
-            40 -
-            ms / 30
-          )
-        )
-      );
-
-
+    const ms = Math.round(performance.now() - startAt);
+    const score = Math.max(1, Math.min(40, Math.round(40 - ms / 30)));
     finished = true;
 
+    pad.textContent = `${ms} ms`;
+    $("liveScore").textContent = score;
 
-    pad.textContent =
-      `${ms} ms`;
-
-
-    $("liveScore")
-      .textContent =
-      score;
-
-
-    setTimeout(
-      () => {
-
-        finishGame(
-          score
-        );
-
-      },
-      700
-    );
-
+    setTimeout(() => {
+      finishGame(score);
+    }, 700);
   };
-
 }
 
 
@@ -977,147 +411,52 @@ function buildReaction() {
 ===================================================== */
 
 function buildTarget() {
-
-  const stage =
-    document.createElement(
-      "div"
-    );
-
-  stage.className =
-    "stage";
-
+  const stage = document.createElement("div");
+  stage.className = "stage";
   stage.innerHTML = `
-
     <div class="stage-info">
-
-      <span>
-        Time:
-        <b id="tTime">
-          15
-        </b>s
-      </span>
-
-      <span>
-        Hits:
-        <b id="tScore">
-          0
-        </b>
-      </span>
-
+      <span>Time: <b id="tTime">15</b>s</span>
+      <span>Hits: <b id="tScore">0</b></span>
     </div>
-
   `;
 
+  const target = document.createElement("button");
+  target.className = "target";
+  target.textContent = "🎯";
 
-  const target =
-    document.createElement(
-      "button"
-    );
-
-  target.className =
-    "target";
-
-  target.textContent =
-    "🎯";
-
-
-  stage.appendChild(
-    target
-  );
-
-
-  $("gameStage")
-    .appendChild(stage);
-
+  stage.appendChild(target);
+  $("gameStage").appendChild(stage);
 
   let time = 15;
-
   let hits = 0;
-
   let running = true;
 
-
   function moveTarget() {
-
-    target.style.left =
-      `${
-        Math.random() *
-        Math.max(
-          5,
-          stage.clientWidth - 65
-        )
-      }px`;
-
-    target.style.top =
-      `${
-        55 +
-        Math.random() *
-        Math.max(
-          5,
-          stage.clientHeight - 110
-        )
-      }px`;
-
+    target.style.left = `${Math.random() * Math.max(5, stage.clientWidth - 65)}px`;
+    target.style.top = `${55 + Math.random() * Math.max(5, stage.clientHeight - 110)}px`;
   }
 
-
   target.onclick = () => {
-
-    if (!running) {
-      return;
-    }
-
+    if (!running) return;
     hits++;
-
-    $("tScore")
-      .textContent =
-      hits;
-
-    $("liveScore")
-      .textContent =
-      hits;
-
+    $("tScore").textContent = hits;
+    $("liveScore").textContent = hits;
     moveTarget();
-
   };
-
 
   moveTarget();
 
+  const timer = setInterval(() => {
+    time--;
+    $("tTime").textContent = time;
 
-  const timer =
-    setInterval(
-      () => {
-
-        time--;
-
-        $("tTime")
-          .textContent =
-          time;
-
-        if (time <= 0) {
-
-          clearInterval(
-            timer
-          );
-
-          running = false;
-
-          target.remove();
-
-          finishGame(
-            Math.min(
-              50,
-              hits * 2
-            )
-          );
-
-        }
-
-      },
-      1000
-    );
-
+    if (time <= 0) {
+      clearInterval(timer);
+      running = false;
+      target.remove();
+      finishGame(Math.min(50, hits * 2));
+    }
+  }, 1000);
 }
 
 
@@ -1126,173 +465,243 @@ function buildTarget() {
 ===================================================== */
 
 function buildGuess() {
-
-  const stage =
-    document.createElement(
-      "div"
-    );
-
-  stage.className =
-    "stage";
-
-
+  const stage = document.createElement("div");
+  stage.className = "stage";
   stage.innerHTML = `
-
     <div class="guess-form">
-
-      <h3>
-        Guess a number
-        from 1 to 50
-      </h3>
-
-      <p
-        id="guessHint"
-        style="
-          color:#9ca3af;
-          margin:10px 0 20px;
-        "
-      >
-        You have 7 attempts.
-      </p>
-
-      <input
-        id="guessInput"
-        type="number"
-        min="1"
-        max="50"
-        placeholder="1 - 50"
-      >
-
-      <button id="guessBtn">
-        GUESS
-      </button>
-
+      <h3>Guess a number from 1 to 50</h3>
+      <p id="guessHint" style="color:#9ca3af; margin:10px 0 20px;">You have 7 attempts.</p>
+      <input id="guessInput" type="number" min="1" max="50" placeholder="1 - 50">
+      <button id="guessBtn">GUESS</button>
     </div>
-
   `;
 
+  $("gameStage").appendChild(stage);
 
-  $("gameStage")
-    .appendChild(stage);
-
-
-  const secret =
-    Math.floor(
-      Math.random() * 50
-    ) + 1;
-
-
+  const secret = Math.floor(Math.random() * 50) + 1;
   let attempts = 0;
-
   let done = false;
 
+  $("guessBtn").onclick = () => {
+    if (done) return;
 
-  $("guessBtn")
-    .onclick = () => {
+    const number = Number($("guessInput").value);
 
-      if (done) {
+    if (!Number.isInteger(number) || number < 1 || number > 50) {
+      $("guessHint").textContent = "Enter a number from 1 to 50.";
+      return;
+    }
+
+    attempts++;
+
+    if (number === secret) {
+      const score = Math.max(10, 40 - (attempts - 1) * 5);
+      done = true;
+      $("guessHint").textContent = `🎉 Correct! Score: ${score}`;
+      setTimeout(() => {
+        finishGame(score);
+      }, 700);
+    } else if (attempts >= 7) {
+      done = true;
+      $("guessHint").textContent = `Game over. Number was ${secret}.`;
+      setTimeout(() => {
+        finishGame(0);
+      }, 900);
+    } else {
+      $("guessHint").textContent = `${number < secret ? "Higher" : "Lower"} — ${7 - attempts} attempts left.`;
+    }
+  };
+}
+
+
+/* =====================================================
+   VICTORY AUDIO SOUND EFFECT (WEB AUDIO API)
+===================================================== */
+
+function playBooyahSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+
+    notes.forEach((freq, index) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      const startTime = ctx.currentTime + index * 0.12;
+      osc.start(startTime);
+      gain.gain.setValueAtTime(0.4, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+      osc.stop(startTime + 0.4);
+    });
+  } catch (e) {
+    console.log("Audio play error", e);
+  }
+}
+
+
+/* =====================================================
+   GAME 6 — FREE FIRE 2D (SURVIVAL SHOOTER + BOOYAH)
+===================================================== */
+
+function buildSurvivalShooter() {
+  const stage = document.createElement("div");
+  stage.className = "stage";
+  stage.style.flexDirection = "column";
+  stage.style.alignItems = "center";
+
+  stage.innerHTML = `
+    <canvas id="ffCanvas" width="320" height="260" style="background:#0f172a; border-radius:12px; border:2px solid #6366f1; cursor:crosshair; touch-action:none; max-width:100%;"></canvas>
+    <p style="font-size:12px; color:#9ca3af; margin-top:8px;">Tap / Click anywhere to Aim & Shoot!</p>
+  `;
+
+  $("gameStage").appendChild(stage);
+
+  const canvas = document.getElementById("ffCanvas");
+  const ctx = canvas.getContext("2d");
+
+  let player = { x: canvas.width / 2, y: canvas.height / 2, radius: 12, color: "#6366f1" };
+  let bullets = [];
+  let enemies = [];
+  let score = 0;
+  let gameOver = false;
+  let spawnInterval = null;
+  let loopId = null;
+
+  function triggerBooyahEnd() {
+    gameOver = true;
+    clearInterval(spawnInterval);
+    cancelAnimationFrame(loopId);
+
+    // Play Fanfare Music Sound
+    playBooyahSound();
+
+    // Draw BOOYAH Overlay
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "bold 24px sans-serif";
+    ctx.textAlign = "center";
+    ctx.shadowColor = "#ef4444";
+    ctx.shadowBlur = 10;
+    ctx.fillText("🔥 ASAD BOOYAH! 🔥", canvas.width / 2, canvas.height / 2 - 10);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "14px sans-serif";
+    ctx.shadowBlur = 0;
+    ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+
+    setTimeout(() => {
+      finishGame(score);
+    }, 1200);
+  }
+
+  function shoot(e) {
+    if (gameOver) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const targetX = clientX - rect.left;
+    const targetY = clientY - rect.top;
+
+    const angle = Math.atan2(targetY - player.y, targetX - player.x);
+    bullets.push({
+      x: player.x,
+      y: player.y,
+      dx: Math.cos(angle) * 7,
+      dy: Math.sin(angle) * 7,
+      radius: 4
+    });
+  }
+
+  canvas.addEventListener("click", shoot);
+  canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    shoot(e);
+  });
+
+  spawnInterval = setInterval(() => {
+    if (gameOver) return;
+    let x, y;
+    if (Math.random() < 0.5) {
+      x = Math.random() < 0.5 ? 0 : canvas.width;
+      y = Math.random() * canvas.height;
+    } else {
+      x = Math.random() * canvas.width;
+      y = Math.random() < 0.5 ? 0 : canvas.height;
+    }
+    const angle = Math.atan2(player.y - y, player.x - x);
+    enemies.push({ x, y, dx: Math.cos(angle) * 1.5, dy: Math.sin(angle) * 1.5, radius: 10 });
+  }, 900);
+
+  function update() {
+    if (gameOver) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Player
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+    ctx.fillStyle = player.color;
+    ctx.fill();
+
+    // Move & Draw Bullets
+    bullets.forEach((b, bi) => {
+      b.x += b.dx;
+      b.y += b.dy;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#f59e0b";
+      ctx.fill();
+
+      if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
+        bullets.splice(bi, 1);
+      }
+    });
+
+    // Move & Draw Enemies
+    enemies.forEach((e, ei) => {
+      e.x += e.dx;
+      e.y += e.dy;
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#ef4444";
+      ctx.fill();
+
+      // Collision with player
+      const distToPlayer = Math.hypot(player.x - e.x, player.y - e.y);
+      if (distToPlayer < player.radius + e.radius) {
+        triggerBooyahEnd();
         return;
       }
 
+      // Collision with bullets
+      bullets.forEach((b, bi) => {
+        const dist = Math.hypot(b.x - e.x, b.y - e.y);
+        if (dist < b.radius + e.radius) {
+          enemies.splice(ei, 1);
+          bullets.splice(bi, 1);
+          score += 10;
+          $("liveScore").textContent = score;
 
-      const number =
-        Number(
-          $("guessInput").value
-        );
+          if (score >= 100) {
+            triggerBooyahEnd();
+          }
+        }
+      });
+    });
 
+    if (!gameOver) {
+      loopId = requestAnimationFrame(update);
+    }
+  }
 
-      if (
-        !Number.isInteger(
-          number
-        ) ||
-        number < 1 ||
-        number > 50
-      ) {
-
-        $("guessHint")
-          .textContent =
-          "Enter a number from 1 to 50.";
-
-        return;
-
-      }
-
-
-      attempts++;
-
-
-      if (
-        number === secret
-      ) {
-
-        const score =
-          Math.max(
-            10,
-            40 -
-            (attempts - 1) * 5
-          );
-
-        done = true;
-
-
-        $("guessHint")
-          .textContent =
-          `🎉 Correct! Score: ${score}`;
-
-
-        setTimeout(
-          () => {
-
-            finishGame(
-              score
-            );
-
-          },
-          700
-        );
-
-
-      } else if (
-        attempts >= 7
-      ) {
-
-        done = true;
-
-
-        $("guessHint")
-          .textContent =
-          `Game over. Number was ${secret}.`;
-
-
-        setTimeout(
-          () => {
-
-            finishGame(
-              0
-            );
-
-          },
-          900
-        );
-
-
-      } else {
-
-        $("guessHint")
-          .textContent =
-
-          `${
-            number < secret
-              ? "Higher"
-              : "Lower"
-          } — ${
-            7 - attempts
-          } attempts left.`;
-
-      }
-
-    };
-
+  update();
 }
 
 
@@ -1301,129 +710,58 @@ function buildGuess() {
 ========================= */
 
 async function loadLeaderboard() {
-
   try {
+    const data = await api("/api/leaderboard");
+    const list = $("leaderboardList");
 
-    const data =
-      await api(
-        "/api/leaderboard"
-      );
-
-
-    const list =
-      $("leaderboardList");
-
-
-    if (
-      !data.leaderboard.length
-    ) {
-
+    if (!data.leaderboard.length) {
       list.innerHTML = `
-
         <div class="leader-row">
-
           <div></div>
-
-          <div>
-            No players yet
-          </div>
-
+          <div>No players yet</div>
           <div></div>
-
           <div></div>
-
         </div>
-
       `;
-
       return;
-
     }
 
-
-    list.innerHTML =
-      data.leaderboard
-        .map(
-          (player, index) => `
-
-            <div class="leader-row">
-
-              <div class="rank">
-                #${index + 1}
-              </div>
-
-              <div class="leader-name">
-                ${escapeHtml(
-                  player.name
-                )}
-              </div>
-
-              <div>
-
-                <small>
-                  Best
-                </small>
-
-                <br>
-
-                <b>
-                  ${player.best_score}
-                </b>
-
-              </div>
-
-              <strong>
-                ⭐ ${player.points}
-              </strong>
-
+    list.innerHTML = data.leaderboard
+      .map(
+        (player, index) => `
+          <div class="leader-row">
+            <div class="rank">#${index + 1}</div>
+            <div class="leader-name">${escapeHtml(player.name)}</div>
+            <div>
+              <small>Best</small><br>
+              <b>${player.best_score}</b>
             </div>
-
-          `
-        )
-        .join("");
-
+            <strong>⭐ ${player.points}</strong>
+          </div>
+        `
+      )
+      .join("");
   } catch {
-
-    /* Ignore leaderboard
-       network errors */
-
+    /* Ignore network errors */
   }
-
 }
 
 
 /* =========================
-   HTML SECURITY
+   SECURITY HELPER
 ========================= */
 
 function escapeHtml(value) {
-
-  return String(value)
-    .replace(
-      /[&<>"']/g,
-      character => {
-
-        const map = {
-
-          "&": "&amp;",
-
-          "<": "&lt;",
-
-          ">": "&gt;",
-
-          '"': "&quot;",
-
-          "'": "&#039;"
-
-        };
-
-        return map[
-          character
-        ];
-
-      }
-    );
-
+  return String(value).replace(/[&<>"']/g, character => {
+    const map = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    };
+    return map[character];
+  });
 }
 
 
@@ -1432,13 +770,6 @@ function escapeHtml(value) {
 ========================= */
 
 updateUI();
-
 refreshCustomer();
-
 loadLeaderboard();
-
-
-setInterval(
-  loadLeaderboard,
-  30000
-);
+setInterval(loadLeaderboard, 30000);
