@@ -174,6 +174,7 @@
 </main>
 
 
+<!-- Standard Game Modal -->
 <div class="modal" id="gameModal" aria-hidden="true">
   <div class="modal-panel">
     <button class="close" id="closeGame">×</button>
@@ -201,6 +202,53 @@
 
     <p class="game-message" id="gameMessage"></p>
   </div>
+</div>
+
+
+<!-- FULL SCREEN FREE FIRE 2D OVERLAY (LOADING -> EMAIL -> LOBBY -> 2v2 GAME) -->
+<div id="ff2d-overlay" class="ff2d-overlay hidden">
+  
+  <!-- 1. LOADING SCREEN -->
+  <div id="ff2d-loading" class="ff2d-screen">
+    <div class="ff2d-box">
+      <h1 class="ff2d-title">ASAD FREE FIRE</h1>
+      <p>Loading Assets...</p>
+      <div class="ff2d-loader-bar">
+        <div class="ff2d-loader-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. EMAIL LOGIN SCREEN -->
+  <div id="ff2d-login" class="ff2d-screen hidden">
+    <div class="ff2d-card">
+      <h2>PLAYER LOGIN</h2>
+      <p>Apna Email Address dalkar aage badein</p>
+      <input type="email" id="ff2d-email" placeholder="example@gmail.com" required />
+      <button type="button" onclick="ff2dSubmitEmail()" class="ff2d-btn">LOGIN & CONTINUE</button>
+    </div>
+  </div>
+
+  <!-- 3. HOME LOBBY SCREEN -->
+  <div id="ff2d-lobby" class="ff2d-screen hidden">
+    <div class="ff2d-card">
+      <h2>GAME LOBBY</h2>
+      <p>Select Match Type:</p>
+      <div class="ff2d-mode-select">
+        <button type="button" class="mode-btn active" id="btn2v2">2 vs 2 (Team Battle)</button>
+        <button type="button" class="mode-btn" id="btn1v1">1 vs 1 (Solo)</button>
+      </div>
+      <button type="button" onclick="ff2dStartMatch()" class="ff2d-btn start-btn">START GAME</button>
+      <button type="button" onclick="ff2dCloseOverlay()" class="ff2d-btn exit-btn">Exit Game</button>
+    </div>
+  </div>
+
+  <!-- 4. ACTUAL 2v2 GAMEPLAY CANVAS SCREEN -->
+  <div id="ff2d-gameplay" class="ff2d-screen hidden">
+    <button type="button" onclick="ff2dCloseOverlay()" class="ff2d-btn quit-btn">Quit Match</button>
+    <canvas id="ff2dCanvas"></canvas>
+  </div>
+
 </div>
 
 
