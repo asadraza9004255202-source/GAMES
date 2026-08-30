@@ -85,7 +85,9 @@ const allowedGames = new Set([
   "memory-master",
   "reaction",
   "target-hunter",
-  "number-guess"
+  "number-guess",
+  "survival-shooter",
+  "free-fire-2d"
 ]);
 
 const gameRules = {
@@ -112,6 +114,16 @@ const gameRules = {
   "number-guess": {
     minSeconds: 5,
     maxPoints: 40
+  },
+
+  "survival-shooter": {
+    minSeconds: 10,
+    maxPoints: 50
+  },
+
+  "free-fire-2d": {
+    minSeconds: 10,
+    maxPoints: 50
   }
 };
 
