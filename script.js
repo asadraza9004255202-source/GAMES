@@ -133,7 +133,7 @@ const games = {
   },
   "survival-shooter": {
     title: "Free Fire 2D",
-    build: buildSurvivalShooter
+    build: launchFF2DOverlay
   }
 };
 
@@ -165,6 +165,11 @@ async function openGame(game) {
 
     state.session = data;
     state.currentGame = game;
+
+    if (game === "survival-shooter") {
+      games[game].build();
+      return;
+    }
 
     $("modalTitle").textContent = games[game].title;
     $("liveScore").textContent = "0";
@@ -221,7 +226,7 @@ async function finishGame(score) {
 
     loadLeaderboard();
   } catch (error) {
-    $("gameMessage").textContent = error.message;
+    if ($("gameMessage")) $("gameMessage").textContent = error.message;
   }
 }
 
@@ -546,117 +551,239 @@ function playBooyahSound() {
 
 
 /* =====================================================
-   GAME 6 — FREE FIRE 2D (SURVIVAL SHOOTER + BOOYAH)
+   GAME 6 — FULL SCREEN FREE FIRE 2D (2v2 ARENA ENGINE)
 ===================================================== */
 
-function buildSurvivalShooter() {
-  const stage = document.createElement("div");
-  stage.className = "stage";
-  stage.style.flexDirection = "column";
-  stage.style.alignItems = "center";
+let ff2dState = {
+  mode: "2v2",
+  playerEmail: "",
+  loopId: null,
+  spawnInterval: null,
+  active: false
+};
 
-  stage.innerHTML = `
-    <canvas id="ffCanvas" width="320" height="260" style="background:#0f172a; border-radius:12px; border:2px solid #6366f1; cursor:crosshair; touch-action:none; max-width:100%;"></canvas>
-    <p style="font-size:12px; color:#9ca3af; margin-top:8px;">Tap / Click anywhere to Aim & Shoot!</p>
-  `;
+// Launch Overlay Flow (Loading Screen -> Email Login -> Lobby -> 2v2 Game)
+function launchFF2DOverlay() {
+  const overlay = $("ff2d-overlay");
+  overlay.classList.remove("hidden");
 
-  $("gameStage").appendChild(stage);
+  $("ff2d-loading").classList.remove("hidden");
+  $("ff2d-login").classList.add("hidden");
+  $("ff2d-lobby").classList.add("hidden");
+  $("ff2d-gameplay").classList.add("hidden");
 
-  const canvas = document.getElementById("ffCanvas");
+  // Show Loading bar for 2.5 seconds
+  setTimeout(() => {
+    $("ff2d-loading").classList.add("hidden");
+
+    const savedEmail = localStorage.getItem("ff2d_email");
+    if (savedEmail) {
+      ff2dState.playerEmail = savedEmail;
+      $("ff2d-email").value = savedEmail;
+      $("ff2d-lobby").classList.remove("hidden");
+    } else {
+      $("ff2d-login").classList.remove("hidden");
+    }
+  }, 2500);
+
+  // Setup mode buttons
+  const btn2v2 = $("btn2v2");
+  const btn1v1 = $("btn1v1");
+  if (btn2v2 && btn1v1) {
+    btn2v2.onclick = () => {
+      ff2dState.mode = "2v2";
+      btn2v2.classList.add("active");
+      btn1v1.classList.remove("active");
+    };
+    btn1v1.onclick = () => {
+      ff2dState.mode = "1v1";
+      btn1v1.classList.add("active");
+      btn2v2.classList.remove("active");
+    };
+  }
+}
+
+function ff2dSubmitEmail() {
+  const emailVal = $("ff2d-email").value.trim();
+  if (!emailVal || !emailVal.includes("@")) {
+    alert("Kripya valid email address enter karein!");
+    return;
+  }
+  ff2dState.playerEmail = emailVal;
+  localStorage.setItem("ff2d_email", emailVal);
+
+  $("ff2d-login").classList.add("hidden");
+  $("ff2d-lobby").classList.remove("hidden");
+}
+
+function ff2dCloseOverlay() {
+  if (ff2dState.loopId) cancelAnimationFrame(ff2dState.loopId);
+  if (ff2dState.spawnInterval) clearInterval(ff2dState.spawnInterval);
+
+  ff2dState.active = false;
+  $("ff2d-overlay").classList.add("hidden");
+  state.session = null;
+  state.currentGame = null;
+}
+
+function ff2dStartMatch() {
+  $("ff2d-lobby").classList.add("hidden");
+  $("ff2d-gameplay").classList.remove("hidden");
+
+  start2v2GameplayEngine();
+}
+
+function start2v2GameplayEngine() {
+  const canvas = $("ff2dCanvas");
   const ctx = canvas.getContext("2d");
 
-  let player = { x: canvas.width / 2, y: canvas.height / 2, radius: 12, color: "#6366f1" };
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  ff2dState.active = true;
+
+  // Blue Team: You (Player) + AI Teammate
+  let player = {
+    x: canvas.width * 0.2,
+    y: canvas.height * 0.5,
+    radius: 16,
+    color: "#3b82f6",
+    hp: 100,
+    name: "YOU"
+  };
+
+  let teammate = {
+    x: canvas.width * 0.2,
+    y: canvas.height * 0.3,
+    radius: 16,
+    color: "#60a5fa",
+    hp: 100,
+    name: "Teammate (AI)"
+  };
+
   let bullets = [];
   let enemies = [];
   let score = 0;
   let gameOver = false;
-  let spawnInterval = null;
-  let loopId = null;
 
-  function triggerBooyahEnd() {
-    gameOver = true;
-    clearInterval(spawnInterval);
-    cancelAnimationFrame(loopId);
-
-    // Play Fanfare Music Sound
-    playBooyahSound();
-
-    // Draw BOOYAH Overlay
-    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "#f59e0b";
-    ctx.font = "bold 24px sans-serif";
-    ctx.textAlign = "center";
-    ctx.shadowColor = "#ef4444";
-    ctx.shadowBlur = 10;
-    ctx.fillText("🔥 ASAD BOOYAH! 🔥", canvas.width / 2, canvas.height / 2 - 10);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "14px sans-serif";
-    ctx.shadowBlur = 0;
-    ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
-
-    setTimeout(() => {
-      finishGame(score);
-    }, 1200);
-  }
-
-  function shoot(e) {
-    if (gameOver) return;
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const targetX = clientX - rect.left;
-    const targetY = clientY - rect.top;
-
-    const angle = Math.atan2(targetY - player.y, targetX - player.x);
+  // Controls & Aim
+  function shootBullet(fromX, fromY, targetX, targetY, isTeammate = false) {
+    const angle = Math.atan2(targetY - fromY, targetX - fromX);
     bullets.push({
-      x: player.x,
-      y: player.y,
-      dx: Math.cos(angle) * 7,
-      dy: Math.sin(angle) * 7,
-      radius: 4
+      x: fromX,
+      y: fromY,
+      dx: Math.cos(angle) * 9,
+      dy: Math.sin(angle) * 9,
+      radius: 4,
+      isTeammate
     });
   }
 
-  canvas.addEventListener("click", shoot);
-  canvas.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    shoot(e);
-  });
+  function handleInput(e) {
+    if (gameOver || !ff2dState.active) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-  spawnInterval = setInterval(() => {
-    if (gameOver) return;
-    let x, y;
-    if (Math.random() < 0.5) {
-      x = Math.random() < 0.5 ? 0 : canvas.width;
-      y = Math.random() * canvas.height;
-    } else {
-      x = Math.random() * canvas.width;
-      y = Math.random() < 0.5 ? 0 : canvas.height;
+    // Move player towards tap position slightly and shoot
+    player.x += (clientX - player.x) * 0.15;
+    player.y += (clientY - player.y) * 0.15;
+
+    shootBullet(player.x, player.y, clientX, clientY, false);
+  }
+
+  canvas.onpointerdown = handleInput;
+
+  // AI Teammate Auto-shooting nearest enemy
+  const teammateShooter = setInterval(() => {
+    if (gameOver || !ff2dState.active) return;
+    if (enemies.length > 0) {
+      let nearest = enemies[0];
+      shootBullet(teammate.x, teammate.y, nearest.x, nearest.y, true);
     }
-    const angle = Math.atan2(player.y - y, player.x - x);
-    enemies.push({ x, y, dx: Math.cos(angle) * 1.5, dy: Math.sin(angle) * 1.5, radius: 10 });
-  }, 900);
+  }, 600);
 
-  function update() {
-    if (gameOver) return;
+  // Spawn Red Enemies
+  ff2dState.spawnInterval = setInterval(() => {
+    if (gameOver || !ff2dState.active) return;
+    enemies.push({
+      x: canvas.width + 20,
+      y: Math.random() * (canvas.height - 100) + 50,
+      dx: - (1.5 + Math.random() * 2),
+      dy: (Math.random() - 0.5) * 1.5,
+      radius: 15,
+      color: "#ef4444",
+      hp: 30
+    });
+  }, 1000);
+
+  function triggerBooyah(win = true) {
+    gameOver = true;
+    clearInterval(teammateShooter);
+    clearInterval(ff2dState.spawnInterval);
+
+    if (win) playBooyahSound();
+
+    ctx.fillStyle = "rgba(6, 9, 19, 0.88)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.textAlign = "center";
+    ctx.font = "900 36px Inter, sans-serif";
+
+    if (win) {
+      ctx.fillStyle = "#facc15";
+      ctx.shadowColor = "#f59e0b";
+      ctx.shadowBlur = 15;
+      ctx.fillText("🏆 BOOYAH! 2v2 VICTORY! 🏆", canvas.width / 2, canvas.height / 2 - 20);
+    } else {
+      ctx.fillStyle = "#ef4444";
+      ctx.fillText("ELIMINATED!", canvas.width / 2, canvas.height / 2 - 20);
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 20px Inter, sans-serif";
+    ctx.fillText(`Final Team Score: ${score}`, canvas.width / 2, canvas.height / 2 + 30);
+
+    setTimeout(() => {
+      finishGame(score);
+    }, 1500);
+  }
+
+  function renderLoop() {
+    if (!ff2dState.active) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw Player
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-    ctx.fillStyle = player.color;
-    ctx.fill();
+    // Draw Map Grid / Arena
+    ctx.strokeStyle = "rgba(255,255,255,0.04)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+
+    // Draw Player & Teammate (Blue Team)
+    [player, teammate].forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(p.name, p.x, p.y - 20);
+    });
 
     // Move & Draw Bullets
     bullets.forEach((b, bi) => {
       b.x += b.dx;
       b.y += b.dy;
+
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#f59e0b";
+      ctx.fillStyle = b.isTeammate ? "#60a5fa" : "#facc15";
       ctx.fill();
 
       if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
@@ -668,40 +795,46 @@ function buildSurvivalShooter() {
     enemies.forEach((e, ei) => {
       e.x += e.dx;
       e.y += e.dy;
+
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#ef4444";
+      ctx.fillStyle = e.color;
       ctx.fill();
 
-      // Collision with player
-      const distToPlayer = Math.hypot(player.x - e.x, player.y - e.y);
-      if (distToPlayer < player.radius + e.radius) {
-        triggerBooyahEnd();
+      // Enemy hit Player
+      const distPlayer = Math.hypot(player.x - e.x, player.y - e.y);
+      if (distPlayer < player.radius + e.radius) {
+        triggerBooyah(false);
         return;
       }
 
-      // Collision with bullets
+      // Bullet hit Enemy
       bullets.forEach((b, bi) => {
         const dist = Math.hypot(b.x - e.x, b.y - e.y);
         if (dist < b.radius + e.radius) {
           enemies.splice(ei, 1);
           bullets.splice(bi, 1);
           score += 10;
-          $("liveScore").textContent = score;
 
-          if (score >= 100) {
-            triggerBooyahEnd();
+          if (score >= 120) {
+            triggerBooyah(true);
           }
         }
       });
     });
 
+    // Score overlay
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 18px Inter, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(`MODE: ${ff2dState.mode} | SCORE: ${score}`, 25, 40);
+
     if (!gameOver) {
-      loopId = requestAnimationFrame(update);
+      ff2dState.loopId = requestAnimationFrame(renderLoop);
     }
   }
 
-  update();
+  renderLoop();
 }
 
 
