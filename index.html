@@ -2,587 +2,220 @@
 <html lang="en">
 
 <head>
-
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <meta
-    name="description"
-    content="Asad Shop Games and Customer Rewards"
-  >
-
-  <title>
-    Asad Shop • Games & Rewards
-  </title>
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Asad Shop Games and Customer Rewards">
+  <title>Asad Shop • Games & Rewards</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <header class="topbar">
-
-  <a
-    class="brand"
-    href="#"
-  >
+  <a class="brand" href="#">
     ASAD<span>SHOP</span>
   </a>
 
   <nav>
-
-    <a href="#games">
-      Games
-    </a>
-
-    <a href="#rewards">
-      Rewards
-    </a>
-
-    <a href="#leaderboard">
-      Leaderboard
-    </a>
-
+    <a href="#games">Games</a>
+    <a href="#rewards">Rewards</a>
+    <a href="#leaderboard">Leaderboard</a>
   </nav>
 
   <div class="top-points">
-
-    ⭐
-    <b id="navPoints">
-      0
-    </b>
-
+    ⭐ <b id="navPoints">0</b>
   </div>
-
 </header>
 
 
 <main>
 
 <section class="hero">
-
   <div class="hero-copy">
-
-    <div class="eyebrow">
-      PLAY • COLLECT • SAVE
-    </div>
-
-    <h1>
-      Mini games.
-      <br>
-      <span>Real rewards.</span>
-    </h1>
-
-    <p>
-      Play five skill-based games,
-      collect points and unlock
-      shop discounts.
-    </p>
-
-    <a
-      class="primary"
-      href="#games"
-    >
-      Explore Games →
-    </a>
-
+    <div class="eyebrow">PLAY • COLLECT • SAVE</div>
+    <h1>Mini games. <br> <span>Real rewards.</span></h1>
+    <p>Play six skill-based games, collect points and unlock shop discounts.</p>
+    <a class="primary" href="#games">Explore Games →</a>
   </div>
-
 
   <div class="hero-card">
-
-    <div class="orb">
-      🏆
-    </div>
-
+    <div class="orb">🏆</div>
     <div>
-
-      <small>
-        YOUR DISCOUNT
-      </small>
-
-      <strong id="heroDiscount">
-        0%
-      </strong>
-
+      <small>YOUR DISCOUNT</small>
+      <strong id="heroDiscount">0%</strong>
     </div>
-
   </div>
-
 </section>
 
 
 <section class="profile-wrap">
-
   <div class="profile">
-
     <div>
-
-      <div class="section-kicker">
-        CUSTOMER PROFILE
-      </div>
-
-      <h2>
-        Save your rewards
-      </h2>
-
-      <p>
-        Use your mobile number
-        to load your account.
-      </p>
-
+      <div class="section-kicker">CUSTOMER PROFILE</div>
+      <h2>Save your rewards</h2>
+      <p>Use your mobile number to load your account.</p>
     </div>
-
 
     <form id="profileForm">
-
-      <input
-        id="name"
-        maxlength="60"
-        placeholder="Your name"
-        required
-      >
-
-      <input
-        id="phone"
-        inputmode="numeric"
-        maxlength="10"
-        placeholder="10-digit mobile"
-        required
-      >
-
-      <button
-        class="primary"
-        type="submit"
-      >
-        Continue
-      </button>
-
+      <input id="name" maxlength="60" placeholder="Your name" required>
+      <input id="phone" inputmode="numeric" maxlength="10" placeholder="10-digit mobile" required>
+      <button class="primary" type="submit">Continue</button>
     </form>
 
-    <p
-      class="form-msg"
-      id="profileMsg"
-    ></p>
-
+    <p class="form-msg" id="profileMsg"></p>
   </div>
-
 </section>
 
 
-<section
-  class="stats"
-  id="rewards"
->
-
+<section class="stats" id="rewards">
   <div class="stat">
-
-    <span>
-      ⭐
-    </span>
-
-    <small>
-      POINTS
-    </small>
-
-    <b id="points">
-      0
-    </b>
-
+    <span>⭐</span>
+    <small>POINTS</small>
+    <b id="points">0</b>
   </div>
 
-
   <div class="stat">
-
-    <span>
-      🎮
-    </span>
-
-    <small>
-      GAMES
-    </small>
-
-    <b id="gamesPlayed">
-      0
-    </b>
-
+    <span>🎮</span>
+    <small>GAMES</small>
+    <b id="gamesPlayed">0</b>
   </div>
 
-
   <div class="stat">
-
-    <span>
-      🏆
-    </span>
-
-    <small>
-      BEST SCORE
-    </small>
-
-    <b id="bestScore">
-      0
-    </b>
-
+    <span>🏆</span>
+    <small>BEST SCORE</small>
+    <b id="bestScore">0</b>
   </div>
 
-
   <div class="stat">
-
-    <span>
-      🎁
-    </span>
-
-    <small>
-      DISCOUNT
-    </small>
-
-    <b id="discount">
-      0%
-    </b>
-
+    <span>🎁</span>
+    <small>DISCOUNT</small>
+    <b id="discount">0%</b>
   </div>
-
 </section>
 
 
-<section
-  class="section"
-  id="games"
->
-
+<section class="section" id="games">
   <div class="section-head">
-
     <div>
-
-      <div class="section-kicker">
-        GAME ARCADE
-      </div>
-
-      <h2>
-        Choose your challenge
-      </h2>
-
+      <div class="section-kicker">GAME ARCADE</div>
+      <h2>Choose your challenge</h2>
     </div>
-
-    <p>
-      Tap a game to open it.
-    </p>
-
+    <p>Tap a game to open it.</p>
   </div>
-
 
   <div class="game-grid">
 
-
-    <button
-      class="game-tile"
-      data-game="coin-rush"
-    >
-
-      <span class="tile-icon">
-        🪙
-      </span>
-
-      <b>
-        Coin Rush
-      </b>
-
-      <small>
-        Catch coins before
-        time runs out
-      </small>
-
-      <em>
-        PLAY →
-      </em>
-
+    <button class="game-tile" data-game="coin-rush">
+      <span class="tile-icon">🪙</span>
+      <b>Coin Rush</b>
+      <small>Catch coins before time runs out</small>
+      <em>PLAY →</em>
     </button>
 
-
-    <button
-      class="game-tile"
-      data-game="memory-master"
-    >
-
-      <span class="tile-icon">
-        🧠
-      </span>
-
-      <b>
-        Memory Master
-      </b>
-
-      <small>
-        Match every pair
-      </small>
-
-      <em>
-        PLAY →
-      </em>
-
+    <button class="game-tile" data-game="memory-master">
+      <span class="tile-icon">🧠</span>
+      <b>Memory Master</b>
+      <small>Match every pair</small>
+      <em>PLAY →</em>
     </button>
 
-
-    <button
-      class="game-tile"
-      data-game="reaction"
-    >
-
-      <span class="tile-icon">
-        ⚡
-      </span>
-
-      <b>
-        Reaction
-      </b>
-
-      <small>
-        Test your reaction speed
-      </small>
-
-      <em>
-        PLAY →
-      </em>
-
+    <button class="game-tile" data-game="reaction">
+      <span class="tile-icon">⚡</span>
+      <b>Reaction</b>
+      <small>Test your reaction speed</small>
+      <em>PLAY →</em>
     </button>
 
-
-    <button
-      class="game-tile"
-      data-game="target-hunter"
-    >
-
-      <span class="tile-icon">
-        🎯
-      </span>
-
-      <b>
-        Target Hunter
-      </b>
-
-      <small>
-        Hit moving targets
-      </small>
-
-      <em>
-        PLAY →
-      </em>
-
+    <button class="game-tile" data-game="target-hunter">
+      <span class="tile-icon">🎯</span>
+      <b>Target Hunter</b>
+      <small>Hit moving targets</small>
+      <em>PLAY →</em>
     </button>
 
-
-    <button
-      class="game-tile"
-      data-game="number-guess"
-    >
-
-      <span class="tile-icon">
-        🔢
-      </span>
-
-      <b>
-        Number Guess
-      </b>
-
-      <small>
-        Find the secret number
-      </small>
-
-      <em>
-        PLAY →
-      </em>
-
+    <button class="game-tile" data-game="number-guess">
+      <span class="tile-icon">🔢</span>
+      <b>Number Guess</b>
+      <small>Find the secret number</small>
+      <em>PLAY →</em>
     </button>
 
+    <button class="game-tile" data-game="survival-shooter">
+      <span class="tile-icon">🔥</span>
+      <b>Free Fire 2D</b>
+      <small>Survive & shoot incoming enemies</small>
+      <em>PLAY →</em>
+    </button>
 
   </div>
-
 </section>
 
-
-<!-- ADSENSE PLACEHOLDER -->
 
 <section class="ad-block">
-
-  <div class="ad-label">
-    ADVERTISEMENT
-  </div>
-
+  <div class="ad-label">ADVERTISEMENT</div>
   <div class="ad-slot">
-
-    <span>
-      Google AdSense ad slot
-    </span>
-
-    <small>
-      Paste your approved
-      AdSense code here.
-    </small>
-
+    <span>Google AdSense ad slot</span>
+    <small>Paste your approved AdSense code here.</small>
   </div>
-
 </section>
 
 
-<section
-  class="section"
-  id="leaderboard"
->
-
+<section class="section" id="leaderboard">
   <div class="section-head">
-
     <div>
-
-      <div class="section-kicker">
-        TOP PLAYERS
-      </div>
-
-      <h2>
-        Leaderboard
-      </h2>
-
+      <div class="section-kicker">TOP PLAYERS</div>
+      <h2>Leaderboard</h2>
     </div>
-
   </div>
 
-
-  <div
-    class="leaderboard"
-    id="leaderboardList"
-  ></div>
-
+  <div class="leaderboard" id="leaderboardList"></div>
 </section>
 
 </main>
 
 
-<!-- GAME MODAL -->
-
-<div
-  class="modal"
-  id="gameModal"
-  aria-hidden="true"
->
-
+<div class="modal" id="gameModal" aria-hidden="true">
   <div class="modal-panel">
-
-    <button
-      class="close"
-      id="closeGame"
-    >
-      ×
-    </button>
-
+    <button class="close" id="closeGame">×</button>
 
     <div class="modal-head">
-
       <div>
-
-        <div
-          class="section-kicker"
-          id="modalKicker"
-        >
-          GAME
-        </div>
-
-        <h2 id="modalTitle">
-          Game
-        </h2>
-
+        <div class="section-kicker" id="modalKicker">GAME</div>
+        <h2 id="modalTitle">Game</h2>
       </div>
-
 
       <div class="session-score">
-
-        Score
-
-        <b id="liveScore">
-          0
-        </b>
-
+        Score <b id="liveScore">0</b>
       </div>
-
     </div>
-
-
-    <!-- AD PLACEHOLDER -->
 
     <div class="modal-ad">
-
-      <div class="ad-label">
-        ADVERTISEMENT
-      </div>
-
+      <div class="ad-label">ADVERTISEMENT</div>
       <div class="ad-slot compact">
-
-        <span>
-          Google AdSense
-        </span>
-
-        <small>
-          Official ad code goes here
-        </small>
-
+        <span>Google AdSense</span>
+        <small>Official ad code goes here</small>
       </div>
-
     </div>
-
 
     <div id="gameStage"></div>
 
-
-    <p
-      class="game-message"
-      id="gameMessage"
-    ></p>
-
+    <p class="game-message" id="gameMessage"></p>
   </div>
-
 </div>
 
 
 <footer>
-
   <div>
-
-    <a
-      class="brand"
-      href="#"
-    >
-      ASAD<span>SHOP</span>
-    </a>
-
-    <p>
-      Play games.
-      Collect rewards.
-      Shop smarter.
-    </p>
-
+    <a class="brand" href="#">ASAD<span>SHOP</span></a>
+    <p>Play games. Collect rewards. Shop smarter.</p>
   </div>
-
   <div>
-
-    <small>
-      © 2026 Asad Shop
-    </small>
-
+    <small>© 2026 Asad Shop</small>
   </div>
-
 </footer>
 
-
 <script src="script.js"></script>
-  <script src="https://pl31087935.profitableratecpmnetwork.com/ac/fc/f7/acfcf79104a32b46c59ef4821324c736.js"></script>
-
+<script src="https://pl31087935.profitableratecpmnetwork.com/ac/fc/f7/acfcf79104a32b46c59ef4821324c736.js"></script>
 
 </body>
-
 </html>
