@@ -1,62 +1,108 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Face Match 2.0 - World Twin Finder</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Face Match 2.0 - World Twin Finder</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="bgCanvas"></canvas>
 
-  <div class="card">
-    <header>
-      <div class="badge">AI RADAR 2.0</div>
-      <h1>World Twin Finder</h1>
-      <p>Duniya me apne jaise dikhne wale log dhoondhein</p>
-    </header>
+    <div class="app-container">
+        <!-- 1. UPLOAD SECTION -->
+        <div id="uploadSection" class="card">
+            <div class="badge">AI RADAR 2.0</div>
+            <h1>World Twin Finder</h1>
+            <p class="subtitle">Duniya me apne jaise dikhne wale log dhoondhein</p>
 
-    <!-- UPLOAD SECTION -->
-    <div id="uploadSection" class="upload-box">
-      <input type="file" id="photoInput" accept="image/*" hidden>
-      <div class="drop-zone" onclick="document.getElementById('photoInput').click()">
-        <div id="uploadIcon" class="upload-icon">📸</div>
-        <p id="uploadText">Tap karke high-quality photo upload karein</p>
-        <img id="previewImg" class="preview-img hidden" alt="Uploaded Photo">
-      </div>
-      <button id="scanBtn" class="btn scan-btn hidden">⚡ START AI FACIAL SCAN</button>
-    </div>
+            <label for="photoInput" class="upload-box" id="uploadBox">
+                <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                
+                <div id="uploadPlaceholder" class="placeholder-content">
+                    <div class="camera-icon">📷⚡</div>
+                    <p>Tap karke high-quality photo upload karein</p>
+                </div>
 
-    <!-- CIRCULAR SCANNING ANIMATION SECTION -->
-    <div id="scanningSection" class="scanning-box hidden">
-      <div class="circle-scanner">
-        <div class="pulse-ring"></div>
-        <div class="spinner-ring"></div>
-        <img id="scanningUserImg" src="" alt="Scanning Target">
-        <div class="scan-line"></div>
-      </div>
-      <h3 id="scanPercent" class="percent-text">0%</h3>
-      <p id="scanStatus" class="status-text">Detecting facial features...</p>
-    </div>
+                <img id="userImagePreview" class="preview-img hidden" alt="Uploaded Preview">
+            </label>
 
-    <!-- RESULT SECTION -->
-    <div id="resultSection" class="result-box hidden">
-      <div class="match-badge">99.2% FACE MATCH</div>
-      <h2>🎉 Twin Profile Found!</h2>
-      <div class="avatar-comparison">
-        <div class="avatar-card">
-          <img id="userFinalImg" src="" alt="User">
-          <span>Aap</span>
+            <button id="scanBtn" class="btn btn-primary hidden">
+                ⚡ START AI FACIAL SCAN
+            </button>
         </div>
-        <div class="vs-badge">VS</div>
-        <div class="avatar-card">
-          <img id="twinFinalImg" src="https://picsum.photos/300/300?random=88" alt="Twin">
-          <span>Twin (California, USA)</span>
-        </div>
-      </div>
-      <button id="unlockBtn" class="btn unlock-btn">🔓 Unlock Full Profile & Contact</button>
-    </div>
-  </div>
 
-  <script src="script.js"></script>
+        <!-- 2. SCANNING SECTION -->
+        <div id="scanningSection" class="card hidden">
+            <div class="badge scanning-badge">ANALYZING BIOMETRICS</div>
+            
+            <div class="scan-frame">
+                <img id="scanningImg" class="scan-img" alt="Scanning User">
+                <div class="scan-line"></div>
+                <div id="meshOverlay" class="mesh-overlay"></div>
+            </div>
+
+            <div class="status-container">
+                <p id="scanStatus">Aligning biometric facial vectors...</p>
+                <div class="progress-wrapper">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+                <span id="scanPercent" class="percent-text">0%</span>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <span class="m-label">Nodal Gap</span>
+                    <span id="m1" class="m-val">--</span>
+                </div>
+                <div class="metric-box">
+                    <span class="m-label">Jaw Angle</span>
+                    <span id="m2" class="m-val">--</span>
+                </div>
+                <div class="metric-box">
+                    <span class="m-label">Symmetry</span>
+                    <span id="m3" class="m-val">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. RESULT SECTION (SIDE-BY-SIDE MATCH) -->
+        <div id="resultSection" class="card hidden">
+            <div class="badge match-badge">🔥 99% MATCH FOUND!</div>
+            <h2>Match Analysis Complete</h2>
+            <p class="subtitle">Biometric Facial Similarity: <strong>99.4%</strong></p>
+
+            <div class="comparison-container">
+                <!-- Left: Uploaded Photo -->
+                <div class="match-card">
+                    <div class="card-tag">YOUR PHOTO</div>
+                    <div class="img-wrapper">
+                        <img id="finalUserImg" alt="Your Photo">
+                    </div>
+                </div>
+
+                <div class="vs-divider">VS</div>
+
+                <!-- Right: Gorilla Twin Photo -->
+                <div class="match-card twin-card">
+                    <div class="card-tag twin-tag">WORLD TWIN (99% MATCH)</div>
+                    <div class="img-wrapper">
+                        <img id="twinImg" alt="World Twin Match">
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="unlockSocialBtn" class="btn btn-secondary">
+                    🔓 UNLOCK TWIN SOCIAL PROFILE
+                </button>
+                <button id="downloadReportBtn" class="btn btn-outline">
+                    📥 DOWNLOAD BIOMETRIC REPORT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
