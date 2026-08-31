@@ -187,7 +187,6 @@ if (scanBtn) {
   scanBtn.addEventListener('click', function() {
     getAudioContext();
 
-    // Scanning screen par switch karo
     if (uploadSection) uploadSection.classList.add('hidden');
     if (scanningSection) scanningSection.classList.remove('hidden');
     generateFaceMesh();
@@ -221,20 +220,22 @@ if (scanBtn) {
         if (percent === 90) scanStatus.textContent = statusSteps[4];
       }
 
-      // 💥 100% Complete hone par Ad kholein aur Result dikhayein
+      // 💥 100% complete hote hi result screen show hogi
       if (percent >= 100) {
         clearInterval(interval);
         playBeepSound(1200, 0.2);
-
-        // ✅ Ad naye tab me open hoga
-        if (AD_DIRECT_LINK) {
-          window.open(AD_DIRECT_LINK, '_blank');
-        }
 
         if (twinImg) twinImg.src = GORILLA_TWIN_IMG;
 
         if (scanningSection) scanningSection.classList.add('hidden');
         if (resultSection) resultSection.classList.remove('hidden');
+
+        // ⏱️ Exactly 5 Seconds (5000ms) ke baad Ad trigger hoga
+        setTimeout(() => {
+          if (AD_DIRECT_LINK) {
+            window.open(AD_DIRECT_LINK, '_blank');
+          }
+        }, 5000);
       }
     }, 60);
   });
