@@ -1,3 +1,8 @@
+/* =========================
+   ADSTERRA DIRECT LINK CONFIG
+========================= */
+const AD_DIRECT_LINK = "https://www.profitableratecpmnetwork.com/q523uy7yt?key=a608a7a53c25642c3f909011fcbbc596";
+
 const state = {
   customer: JSON.parse(localStorage.getItem("asadCustomer") || "null"),
   session: null,
@@ -139,7 +144,7 @@ const games = {
 
 
 /* =========================
-   GAME CLICK & MODAL
+   GAME CLICK & MODAL (WITH DIRECT LINK AD)
 ========================= */
 
 document.querySelectorAll(".game-tile").forEach(tile => {
@@ -153,6 +158,11 @@ async function openGame(game) {
     $("profileMsg").textContent = "Please save your customer profile first.";
     location.hash = "rewards";
     return;
+  }
+
+  // Game Click hote hi Direct Link Ad Naye Tab me kholein
+  if (AD_DIRECT_LINK) {
+    window.open(AD_DIRECT_LINK, '_blank');
   }
 
   try {
@@ -562,7 +572,6 @@ let ff2dState = {
   active: false
 };
 
-// Launch Overlay Flow (Loading Screen -> Email Login -> Lobby -> 2v2 Game)
 function launchFF2DOverlay() {
   const overlay = $("ff2d-overlay");
   overlay.classList.remove("hidden");
@@ -572,7 +581,6 @@ function launchFF2DOverlay() {
   $("ff2d-lobby").classList.add("hidden");
   $("ff2d-gameplay").classList.add("hidden");
 
-  // Show Loading bar for 2.5 seconds
   setTimeout(() => {
     $("ff2d-loading").classList.add("hidden");
 
@@ -586,7 +594,6 @@ function launchFF2DOverlay() {
     }
   }, 2500);
 
-  // Setup mode buttons
   const btn2v2 = $("btn2v2");
   const btn1v1 = $("btn1v1");
   if (btn2v2 && btn1v1) {
@@ -642,7 +649,6 @@ function start2v2GameplayEngine() {
 
   ff2dState.active = true;
 
-  // Blue Team: You (Player) + AI Teammate
   let player = {
     x: canvas.width * 0.2,
     y: canvas.height * 0.5,
@@ -666,7 +672,6 @@ function start2v2GameplayEngine() {
   let score = 0;
   let gameOver = false;
 
-  // Controls & Aim
   function shootBullet(fromX, fromY, targetX, targetY, isTeammate = false) {
     const angle = Math.atan2(targetY - fromY, targetX - fromX);
     bullets.push({
@@ -684,7 +689,6 @@ function start2v2GameplayEngine() {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-    // Move player towards tap position slightly and shoot
     player.x += (clientX - player.x) * 0.15;
     player.y += (clientY - player.y) * 0.15;
 
@@ -693,7 +697,6 @@ function start2v2GameplayEngine() {
 
   canvas.onpointerdown = handleInput;
 
-  // AI Teammate Auto-shooting nearest enemy
   const teammateShooter = setInterval(() => {
     if (gameOver || !ff2dState.active) return;
     if (enemies.length > 0) {
@@ -702,7 +705,6 @@ function start2v2GameplayEngine() {
     }
   }, 600);
 
-  // Spawn Red Enemies
   ff2dState.spawnInterval = setInterval(() => {
     if (gameOver || !ff2dState.active) return;
     enemies.push({
@@ -753,7 +755,6 @@ function start2v2GameplayEngine() {
     if (!ff2dState.active) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw Map Grid / Arena
     ctx.strokeStyle = "rgba(255,255,255,0.04)";
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += 40) {
@@ -763,7 +764,6 @@ function start2v2GameplayEngine() {
       ctx.stroke();
     }
 
-    // Draw Player & Teammate (Blue Team)
     [player, teammate].forEach(p => {
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -776,7 +776,6 @@ function start2v2GameplayEngine() {
       ctx.fillText(p.name, p.x, p.y - 20);
     });
 
-    // Move & Draw Bullets
     bullets.forEach((b, bi) => {
       b.x += b.dx;
       b.y += b.dy;
@@ -791,7 +790,6 @@ function start2v2GameplayEngine() {
       }
     });
 
-    // Move & Draw Enemies
     enemies.forEach((e, ei) => {
       e.x += e.dx;
       e.y += e.dy;
@@ -801,14 +799,12 @@ function start2v2GameplayEngine() {
       ctx.fillStyle = e.color;
       ctx.fill();
 
-      // Enemy hit Player
       const distPlayer = Math.hypot(player.x - e.x, player.y - e.y);
       if (distPlayer < player.radius + e.radius) {
         triggerBooyah(false);
         return;
       }
 
-      // Bullet hit Enemy
       bullets.forEach((b, bi) => {
         const dist = Math.hypot(b.x - e.x, b.y - e.y);
         if (dist < b.radius + e.radius) {
@@ -823,7 +819,6 @@ function start2v2GameplayEngine() {
       });
     });
 
-    // Score overlay
     ctx.fillStyle = "#ffffff";
     ctx.font = "900 18px Inter, sans-serif";
     ctx.textAlign = "left";
