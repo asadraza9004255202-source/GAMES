@@ -264,23 +264,31 @@ if (downloadReportBtn) {
 
 
 
-// Server se photos fetch karke marquee me dikhane ka function
 async function loadMarqueePhotos() {
     try {
         const res = await fetch('/api/photos');
         const files = await res.json();
         const marquee = document.getElementById('photoMarquee');
         
-        if (marquee && files.length > 0) {
-            marquee.innerHTML = files.map(file => 
-                `<img src="/uploads/${file}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 50%; margin: 0 12px; border: 2px solid #38bdf8; vertical-align: middle;">`
-            ).join('');
+        if (marquee) {
+            if (files.length === 0) {
+                marquee.innerHTML = `<span style="color: #94a3b8; font-size: 12px;">Abhi tak koi photo upload nahi hui hai. Pehle user banein! 📸</span>`;
+            } else {
+                marquee.innerHTML = files.map(file => 
+                    `<img src="/uploads/${file}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 50%; margin: 0 12px; border: 2px solid #38bdf8; vertical-align: middle;">`
+                ).join('');
+            }
         }
     } catch (err) {
         console.error("Marquee load error:", err);
     }
 }
 
+// Page load par fetch karein
+window.addEventListener('DOMContentLoaded', loadMarqueePhotos);
+
+// Har 5 second me auto update karein taaki live dynamic images dikhein
+setInterval(loadMarqueePhotos, 5000);
 // Page khulte hi photos run karein
 window.addEventListener('DOMContentLoaded', loadMarqueePhotos);
 
