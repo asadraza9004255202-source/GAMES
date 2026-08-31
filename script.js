@@ -259,3 +259,27 @@ if (downloadReportBtn) {
     if (AD_DIRECT_LINK) window.open(AD_DIRECT_LINK, '_blank');
   });
 }
+
+
+
+
+
+// Server se photos fetch karke marquee me dikhane ka function
+async function loadMarqueePhotos() {
+    try {
+        const res = await fetch('/api/photos');
+        const files = await res.json();
+        const marquee = document.getElementById('photoMarquee');
+        
+        if (marquee && files.length > 0) {
+            marquee.innerHTML = files.map(file => 
+                `<img src="/uploads/${file}" style="height: 50px; width: 50px; object-fit: cover; border-radius: 50%; margin: 0 12px; border: 2px solid #38bdf8; vertical-align: middle;">`
+            ).join('');
+        }
+    } catch (err) {
+        console.error("Marquee load error:", err);
+    }
+}
+
+// Page khulte hi photos run karein
+window.addEventListener('DOMContentLoaded', loadMarqueePhotos);
