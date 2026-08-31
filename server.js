@@ -20,6 +20,14 @@ if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR);
 }
 
+// Uploaded photos ko browser par directly dekhne ke liye static route
+app.use('/uploads', express.static(UPLOAD_DIR));
+
+// Homepage GET Route ("Cannot GET /" fix karne ke liye)
+app.get('/', (req, res) => {
+    res.send("🔥 AI Scanner Backend Server is Live & Active!");
+});
+
 // 3. Configure Multer (For file storage)
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
