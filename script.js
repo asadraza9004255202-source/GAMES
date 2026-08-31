@@ -5,7 +5,7 @@ const AD_DIRECT_LINK = "https://www.profitableratecpmnetwork.com/q523uy7yt?key=a
 const BACKEND_URL = "http://asadgames2.duckdns.org";
 
 // Gorilla Twin Match Photo (Online URL)
-const GORILLA_TWIN_IMG = "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Mountain_Gorilla_in_Uganda.jpg/800px-Mountain_Gorilla_in_Uganda.jpg";
+const GORILLA_TWIN_IMG = "gorilla.jpg";
 
 /* ==========================================
    2. DOM ELEMENTS
