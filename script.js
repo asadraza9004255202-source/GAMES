@@ -283,3 +283,17 @@ async function loadMarqueePhotos() {
 
 // Page khulte hi photos run karein
 window.addEventListener('DOMContentLoaded', loadMarqueePhotos);
+
+// Background Music Auto-Play Handler
+const bgMusic = document.getElementById('bgMusic');
+
+function startMusic() {
+    if (bgMusic && bgMusic.paused) {
+        bgMusic.volume = 0.3; // Low soft volume
+        bgMusic.play().catch(err => console.log("Audio playback waiting for interaction"));
+    }
+}
+
+// User ke kisi bhi pehle click par music play ho jayega
+document.addEventListener('click', startMusic, { once: true });
+document.addEventListener('touchstart', startMusic, { once: true });
