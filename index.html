@@ -105,5 +105,14 @@
     </div>
 
     <script src="script.js"></script>
+    <!-- Live Scrolling Photos Marquee Bar -->
+<div style="position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); padding: 8px 0; border-top: 1px solid #334155; z-index: 9999;">
+    <p style="color: #38bdf8; font-size: 11px; text-align: center; margin: 0 0 4px 0; font-family: sans-serif; font-weight: bold;">
+        📸 RECENT SCANNED USERS
+    </p>
+    <marquee id="photoMarquee" behavior="scroll" direction="left" scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();">
+        <!-- JS se yahan images dynamically add hongi -->
+    </marquee>
+</div>
 </body>
 </html>
