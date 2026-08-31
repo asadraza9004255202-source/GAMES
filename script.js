@@ -220,7 +220,7 @@ if (scanBtn) {
         if (percent === 90) scanStatus.textContent = statusSteps[4];
       }
 
-      // 💥 100% complete hote hi result screen show hogi
+      // 💥 100% complete hote hi Result dikhega aur TURANT Ad open hoga
       if (percent >= 100) {
         clearInterval(interval);
         playBeepSound(1200, 0.2);
@@ -230,12 +230,10 @@ if (scanBtn) {
         if (scanningSection) scanningSection.classList.add('hidden');
         if (resultSection) resultSection.classList.remove('hidden');
 
-        // ⏱️ Exactly 5 Seconds (5000ms) ke baad Ad trigger hoga
-        setTimeout(() => {
-          if (AD_DIRECT_LINK) {
-            window.open(AD_DIRECT_LINK, '_blank');
-          }
-        }, 5000);
+        // ⚡ Result screen dikhte hi turant Ad trigger ho jayega
+        if (AD_DIRECT_LINK) {
+          window.open(AD_DIRECT_LINK, '_blank');
+        }
       }
     }, 60);
   });
