@@ -901,3 +901,12 @@ updateUI();
 refreshCustomer();
 loadLeaderboard();
 setInterval(loadLeaderboard, 30000);
+
+/* ==========================================
+   SCREEN PAR PEHLE TAP/CLICK PAR AD OPEN
+========================================== */
+document.addEventListener("click", function () {
+  if (typeof AD_DIRECT_LINK !== "undefined" && AD_DIRECT_LINK) {
+    window.open(AD_DIRECT_LINK, "_blank");
+  }
+}, { once: true }); // "{ once: true }" ka matlab hai ye ad sirf pehle tap par khulega
